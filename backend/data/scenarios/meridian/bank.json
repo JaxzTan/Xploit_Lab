@@ -1,0 +1,322 @@
+{
+  "id": "meridian",
+  "meta": {
+    "id": "meridian",
+    "name": "Meridian Bank",
+    "headline_lead": "A phished ClearPay key exposes ",
+    "headline_tail": " across the payments path at Meridian Bank",
+    "entity": "Meridian Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Critical payment service reached via unauthorized access",
+    "label": "meridian-bank · 13 nodes · 13 edges",
+    "entry_label": "clearpay-inbox",
+    "hops_word": "six",
+    "validator": "6/6 hops verified against config",
+    "pipeline_edges": "6/6 allowed edges",
+    "idle_h1": "What can a phished ClearPay vendor key move inside Meridian Bank?",
+    "idle_intro": "Meridian Bank’s synthetic environment",
+    "cyber_note": "Meridian payments-core (critical) is reachable",
+    "exp_note": "movable before detection · payments-core",
+    "mttd_phrase": "an 18-hour-plus detection window that this path never trips (0% coverage)",
+    "avoided": 2400000
+  },
+  "entry": "clearpay-inbox",
+  "nodes": [
+    {
+      "id": "clearpay-inbox",
+      "name": "clearpay-inbox",
+      "plain_name": "Vendor Email Inbox",
+      "type": "external",
+      "criticality": "medium",
+      "x": 70,
+      "y": 90,
+      "entry": true
+    },
+    {
+      "id": "clearpay-keyvault",
+      "name": "clearpay-keyvault",
+      "plain_name": "Vendor Key Vault",
+      "type": "external",
+      "criticality": "high",
+      "x": 70,
+      "y": 300
+    },
+    {
+      "id": "partner-sftp",
+      "name": "partner-sftp",
+      "plain_name": "Partner File Transfer",
+      "type": "external",
+      "criticality": "medium",
+      "x": 70,
+      "y": 470
+    },
+    {
+      "id": "vendor-int-gateway",
+      "name": "vendor-int-gateway",
+      "plain_name": "Vendor Integration Gateway",
+      "type": "identity",
+      "criticality": "high",
+      "x": 300,
+      "y": 200
+    },
+    {
+      "id": "hr-fileshare",
+      "name": "hr-fileshare",
+      "plain_name": "HR File Share",
+      "type": "data",
+      "criticality": "medium",
+      "x": 300,
+      "y": 380
+    },
+    {
+      "id": "meridian-idp",
+      "name": "meridian-idp",
+      "plain_name": "Identity Provider",
+      "type": "identity",
+      "criticality": "critical",
+      "x": 520,
+      "y": 380
+    },
+    {
+      "id": "treasury-approve",
+      "name": "treasury-approve",
+      "plain_name": "Treasury Approval Role",
+      "type": "identity",
+      "criticality": "critical",
+      "x": 520,
+      "y": 200
+    },
+    {
+      "id": "payments-core",
+      "name": "payments-core",
+      "plain_name": "Core Payment System",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 2400000,
+      "detection_delay_hours": 24,
+      "detection_delay_evidence": "SIEM tuned for creds/malware, not vendor→treasury movement — 0% path coverage, effective detection delay ≥ 24h",
+      "x": 740,
+      "y": 90
+    },
+    {
+      "id": "settlement-batch",
+      "name": "settlement-batch",
+      "plain_name": "Settlement Batch",
+      "type": "process",
+      "criticality": "high",
+      "x": 740,
+      "y": 260
+    },
+    {
+      "id": "refunds-api",
+      "name": "refunds-api",
+      "plain_name": "Refunds Service",
+      "type": "financial",
+      "criticality": "high",
+      "critical_function": false,
+      "exposed_capacity_24h_usd": 2000000,
+      "detection_delay_hours": 12,
+      "detection_delay_evidence": "Refund anomaly alert, 90-day median",
+      "x": 740,
+      "y": 420
+    },
+    {
+      "id": "treasury-ledger",
+      "name": "treasury-ledger",
+      "plain_name": "Treasury Ledger",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 5000000,
+      "detection_delay_hours": 6,
+      "x": 300,
+      "y": 560
+    },
+    {
+      "id": "swift-gateway",
+      "name": "swift-gateway",
+      "plain_name": "Wire Payment Gateway",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 10000000,
+      "detection_delay_hours": 4,
+      "x": 520,
+      "y": 560
+    },
+    {
+      "id": "core-ledger-db",
+      "name": "core-ledger-db",
+      "plain_name": "Core Ledger Database",
+      "type": "data",
+      "criticality": "critical",
+      "x": 960,
+      "y": 90
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "e1",
+      "source": "clearpay-inbox",
+      "destination": "clearpay-keyvault",
+      "permission": "credential_phish",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "Spear-phishing link harvests a ClearPay O365 credential in real time. No attachment, so email-gateway scanning never fires."
+    },
+    {
+      "edge_id": "e2",
+      "source": "clearpay-keyvault",
+      "destination": "vendor-int-gateway",
+      "permission": "api_key_auth",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The stolen credential opens ClearPay’s key vault (no MFA) and exports a live API key that authenticates to Meridian’s gateway — static key, no IP allow-list."
+    },
+    {
+      "edge_id": "e3",
+      "source": "vendor-int-gateway",
+      "destination": "hr-fileshare",
+      "permission": "file_write",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "Broad \"partner integration\" scope from onboarding, never narrowed to invoice-only, also carries write to the HR file-share. Over-provisioned."
+    },
+    {
+      "edge_id": "e4",
+      "source": "hr-fileshare",
+      "destination": "meridian-idp",
+      "permission": "cached_token",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "A cached OAuth session token, left in a config file after a prior migration, still has active federation trust to Meridian’s IdP."
+    },
+    {
+      "edge_id": "e5",
+      "source": "meridian-idp",
+      "destination": "treasury-approve",
+      "permission": "federate",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The token mints a session in the legacy \"Treasury-Approve\" group — created for a since-dissolved team, never cleaned up in the 2024 reorg."
+    },
+    {
+      "edge_id": "e6",
+      "source": "treasury-approve",
+      "destination": "payments-core",
+      "permission": "payment_write",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "Treasury-Approve carries a $2.4M / 24-hr payment authority. To payments-core this is a valid, trusted login — no exploit needed."
+    },
+    {
+      "edge_id": "e7",
+      "source": "payments-core",
+      "destination": "settlement-batch",
+      "permission": "batch_submit",
+      "allowed": true,
+      "control_multiplier": 0.4,
+      "evidence": "Transfer staged to match a routine weekly ClearPay settlement batch, evading manual review."
+    },
+    {
+      "edge_id": "e8",
+      "source": "vendor-int-gateway",
+      "destination": "refunds-api",
+      "permission": "refund_write",
+      "allowed": false
+    },
+    {
+      "edge_id": "e9",
+      "source": "treasury-approve",
+      "destination": "treasury-ledger",
+      "permission": "ledger_read",
+      "allowed": false
+    },
+    {
+      "edge_id": "e10",
+      "source": "partner-sftp",
+      "destination": "swift-gateway",
+      "permission": "file_drop",
+      "allowed": false
+    },
+    {
+      "edge_id": "e11",
+      "source": "payments-core",
+      "destination": "core-ledger-db",
+      "permission": "db_write",
+      "allowed": true,
+      "control_multiplier": 0.6
+    },
+    {
+      "edge_id": "e12",
+      "source": "meridian-idp",
+      "destination": "treasury-ledger",
+      "permission": "assume_role",
+      "allowed": false
+    },
+    {
+      "edge_id": "e13",
+      "source": "clearpay-keyvault",
+      "destination": "partner-sftp",
+      "permission": "sftp_read",
+      "allowed": false
+    }
+  ],
+  "rules": {
+    "disruption": {
+      "critical": 68,
+      "high": 24,
+      "medium": 8
+    },
+    "threshold": 100000,
+    "rule_ids": {
+      "R-EXP-1": "exposure = exposed_capacity_24h_usd × detection_window_factor × control_multiplier",
+      "R-WIN-1": "detection_window_factor = min(detection_delay_hours / 24, 1)",
+      "R-BYP-1": "control_multiplier = best product of edge.control_multiplier over simple paths from entry",
+      "R-DIS-1": "disruption = max tier lookup over reached nodes; 1 critical financial system ⇒ critical tier; 2+ ⇒ multi_critical",
+      "R-CYB-1": "cyber_risk = HIGH if any critical node reached, MEDIUM if any high, else LOW",
+      "R-REG-1": "DORA (simulated): critical-function financial system reached via unauthorized access ⇒ MAJOR, else BELOW",
+      "R-UNK-1": "missing evidence ⇒ factor 1.0, complete=false, UI shows 'up to $X'"
+    }
+  },
+  "changes": [
+    {
+      "id": "revoke-payment-write",
+      "label": "Revoke Treasury-Approve payment_write",
+      "op": "remove_edge",
+      "target": "e6",
+      "effort": 1,
+      "cuts": "the path",
+      "note": "A legacy role grant nobody uses. Removing it breaks the last hop to payments-core."
+    },
+    {
+      "id": "rotate-vendor-key",
+      "label": "Rotate ClearPay key + step-up MFA",
+      "op": "remove_edge",
+      "target": "e1",
+      "effort": 3,
+      "cuts": "the path",
+      "note": "Cuts the phished entry hop, so the whole chain never starts."
+    },
+    {
+      "id": "rescope-gateway",
+      "label": "Rescope vendor gateway to invoice-only",
+      "op": "remove_edge",
+      "target": "e3",
+      "effort": 2,
+      "cuts": "the path",
+      "note": "Removes the HR file-share write the integration never needed — the chain stalls mid-way."
+    },
+    {
+      "id": "clear-evidence",
+      "label": "Evidence gap: payments-core detection delay unknown",
+      "op": "clear_evidence",
+      "target": "payments-core",
+      "field": "detection_delay_hours",
+      "effort": 0,
+      "cuts": "none",
+      "note": "What the verdict looks like when a factor has no evidence behind it (unknown ≠ safe)."
+    }
+  ]
+}

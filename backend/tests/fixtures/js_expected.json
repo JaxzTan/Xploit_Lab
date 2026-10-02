@@ -1,0 +1,1389 @@
+{
+ "meridian": [
+  {
+   "change_ids": [],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway",
+     "hr-fileshare",
+     "meridian-idp",
+     "treasury-approve",
+     "payments-core",
+     "settlement-batch",
+     "core-ledger-db"
+    ],
+    "total": 2400000,
+    "complete": true,
+    "disruption": 68,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "payments-core",
+      "gap": 1,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 2400000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway",
+     "hr-fileshare",
+     "meridian-idp",
+     "treasury-approve"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 68,
+    "critical_financial_count": 0,
+    "cyber": "HIGH",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-vendor-key"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rotate-vendor-key"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rescope-gateway"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rescope-gateway"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-vendor-key",
+    "rescope-gateway"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rotate-vendor-key",
+    "rescope-gateway"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway",
+     "hr-fileshare",
+     "meridian-idp",
+     "treasury-approve",
+     "payments-core",
+     "settlement-batch",
+     "core-ledger-db"
+    ],
+    "total": 2400000,
+    "complete": false,
+    "disruption": 68,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "payments-core",
+      "gap": 1,
+      "gap_unknown": true,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 2400000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway",
+     "hr-fileshare",
+     "meridian-idp",
+     "treasury-approve"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 68,
+    "critical_financial_count": 0,
+    "cyber": "HIGH",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-vendor-key",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rotate-vendor-key",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rescope-gateway",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rescope-gateway",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "clearpay-keyvault",
+     "vendor-int-gateway"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-vendor-key",
+    "rescope-gateway",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-payment-write",
+    "rotate-vendor-key",
+    "rescope-gateway",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  }
+ ],
+ "hydra": [
+  {
+   "change_ids": [],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api",
+     "originator-profile",
+     "ach-gateway",
+     "nacha-batch",
+     "ledger-db",
+     "audit-log"
+    ],
+    "total": 4100000,
+    "complete": true,
+    "disruption": 48,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "ach-gateway",
+      "gap": 1,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 4100000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api",
+     "originator-profile"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-leaked-key"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "rotate-leaked-key"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "scope-originator"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "scope-originator"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-leaked-key",
+    "scope-originator"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "rotate-leaked-key",
+    "scope-originator"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api",
+     "originator-profile",
+     "ach-gateway",
+     "nacha-batch",
+     "ledger-db",
+     "audit-log"
+    ],
+    "total": 4100000,
+    "complete": false,
+    "disruption": 48,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "ach-gateway",
+      "gap": 1,
+      "gap_unknown": true,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 4100000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api",
+     "originator-profile"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-leaked-key",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "rotate-leaked-key",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "scope-originator",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "scope-originator",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "corp-pay-key",
+     "payments-api"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "rotate-leaked-key",
+    "scope-originator",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-ach-originate",
+    "rotate-leaked-key",
+    "scope-originator",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  }
+ ],
+ "lion": [
+  {
+   "change_ids": [],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "swift-connector",
+     "card-issuing-api",
+     "monitoring-gap",
+     "backup-vault",
+     "card-ledger-db",
+     "audit-log"
+    ],
+    "total": 4670000,
+    "complete": true,
+    "disruption": 96,
+    "critical_financial_count": 2,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "swift-connector",
+      "gap": 0.25,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 1670000
+     },
+     {
+      "node_id": "card-issuing-api",
+      "gap": 0.75,
+      "gap_unknown": false,
+      "bypass": 0.8,
+      "chain": [
+       "e1",
+       "e2",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 3000000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "swift-connector",
+     "monitoring-gap",
+     "backup-vault"
+    ],
+    "total": 1670000,
+    "complete": true,
+    "disruption": 72,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "swift-connector",
+      "gap": 0.25,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 1670000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "swift-dual-approval"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "card-issuing-api",
+     "monitoring-gap",
+     "card-ledger-db",
+     "audit-log"
+    ],
+    "total": 3000000,
+    "complete": true,
+    "disruption": 72,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "card-issuing-api",
+      "gap": 0.75,
+      "gap_unknown": false,
+      "bypass": 0.8,
+      "chain": [
+       "e1",
+       "e2",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 3000000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "swift-dual-approval"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "swift-dual-approval"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "monitoring-gap"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 72,
+    "critical_financial_count": 0,
+    "cyber": "HIGH",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "swift-dual-approval"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "swift-dual-approval",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "swift-dual-approval",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "segment-jump-host"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "swift-connector",
+     "card-issuing-api",
+     "monitoring-gap",
+     "backup-vault",
+     "card-ledger-db",
+     "audit-log"
+    ],
+    "total": 5670000,
+    "complete": false,
+    "disruption": 96,
+    "critical_financial_count": 2,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "swift-connector",
+      "gap": 0.25,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 1670000
+     },
+     {
+      "node_id": "card-issuing-api",
+      "gap": 1,
+      "gap_unknown": true,
+      "bypass": 0.8,
+      "chain": [
+       "e1",
+       "e2",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 4000000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "swift-connector",
+     "monitoring-gap",
+     "backup-vault"
+    ],
+    "total": 1670000,
+    "complete": true,
+    "disruption": 72,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "swift-connector",
+      "gap": 0.25,
+      "gap_unknown": false,
+      "bypass": 1,
+      "chain": [
+       "e1",
+       "e2",
+       "e3",
+       "e4"
+      ],
+      "bypass_unknown": false,
+      "exposure": 1670000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "swift-dual-approval",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "card-issuing-api",
+     "monitoring-gap",
+     "card-ledger-db",
+     "audit-log"
+    ],
+    "total": 4000000,
+    "complete": false,
+    "disruption": 72,
+    "critical_financial_count": 1,
+    "cyber": "HIGH",
+    "regulatory": "MAJOR",
+    "per_system": [
+     {
+      "node_id": "card-issuing-api",
+      "gap": 1,
+      "gap_unknown": true,
+      "bypass": 0.8,
+      "chain": [
+       "e1",
+       "e2",
+       "e5",
+       "e6"
+      ],
+      "bypass_unknown": false,
+      "exposure": 4000000
+     }
+    ]
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "swift-dual-approval",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session",
+     "jump-host",
+     "iam-role-broker",
+     "automation-svc",
+     "monitoring-gap"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 72,
+    "critical_financial_count": 0,
+    "cyber": "HIGH",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "swift-dual-approval",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "swift-dual-approval",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [
+     "stolen-session"
+    ],
+    "total": 0,
+    "complete": true,
+    "disruption": 24,
+    "critical_financial_count": 0,
+    "cyber": "MEDIUM",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  },
+  {
+   "change_ids": [
+    "patch-citrix",
+    "revoke-card-scope",
+    "swift-dual-approval",
+    "segment-jump-host",
+    "clear-evidence"
+   ],
+   "verdict": {
+    "reached": [],
+    "total": 0,
+    "complete": true,
+    "disruption": 0,
+    "critical_financial_count": 0,
+    "cyber": "LOW",
+    "regulatory": "BELOW",
+    "per_system": []
+   }
+  }
+ ]
+}

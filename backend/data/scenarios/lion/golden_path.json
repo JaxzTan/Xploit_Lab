@@ -1,0 +1,289 @@
+{
+  "entry_point": "edge-vpn",
+  "steps": [
+    {
+      "from": "edge-vpn",
+      "to": "stolen-session",
+      "technique": "Exploit Public-Facing Application (T1190) + Steal Web Session Cookie (T1539) — CVE-2023-4966, Citrix Bleed",
+      "evidence_edge": "e1"
+    },
+    {
+      "from": "stolen-session",
+      "to": "jump-host",
+      "technique": "Use Alternate Authentication Material: Web Session Cookie (T1550.004) — replayed to bypass MFA",
+      "evidence_edge": "e2"
+    },
+    {
+      "from": "jump-host",
+      "to": "iam-role-broker",
+      "technique": "Valid Accounts: Cloud Accounts (T1078.004) — assume an over-privileged IAM broker role",
+      "evidence_edge": "e3"
+    },
+    {
+      "from": "iam-role-broker",
+      "to": "swift-connector",
+      "technique": "Financial Theft (T1657) — wire origination through the SWIFT connector",
+      "evidence_edge": "e4"
+    },
+    {
+      "from": "jump-host",
+      "to": "automation-svc",
+      "technique": "Use Alternate Authentication Material: Application Access Token (T1550.001) — reuse of a stolen automation-service token",
+      "evidence_edge": "e5"
+    },
+    {
+      "from": "automation-svc",
+      "to": "card-issuing-api",
+      "technique": "Financial Theft (T1657) — uncontrolled bulk virtual-card issuance",
+      "evidence_edge": "e6"
+    }
+  ],
+  "systems_reached": [
+    "stolen-session",
+    "jump-host",
+    "iam-role-broker",
+    "swift-connector",
+    "automation-svc",
+    "card-issuing-api"
+  ],
+  "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4",
+    "e5",
+    "e6"
+  ],
+  "on_path": [
+    "edge-vpn",
+    "stolen-session",
+    "jump-host",
+    "iam-role-broker",
+    "swift-connector",
+    "automation-svc",
+    "card-issuing-api"
+  ],
+  "techniques": {
+    "e1": "Exploit Public-Facing Application (T1190) + Steal Web Session Cookie (T1539) — CVE-2023-4966, Citrix Bleed",
+    "e2": "Use Alternate Authentication Material: Web Session Cookie (T1550.004) — replayed to bypass MFA",
+    "e3": "Valid Accounts: Cloud Accounts (T1078.004) — assume an over-privileged IAM broker role",
+    "e4": "Financial Theft (T1657) — wire origination through the SWIFT connector",
+    "e5": "Use Alternate Authentication Material: Application Access Token (T1550.001) — reuse of a stolen automation-service token",
+    "e6": "Financial Theft (T1657) — uncontrolled bulk virtual-card issuance"
+  },
+  "hop_details": {
+    "e1": {
+      "title": "Citrix Bleed session-token leak (CVE-2023-4966)",
+      "how": "Lion Bank’s internet-facing NetScaler ADC/Gateway is unpatched against CVE-2023-4966 (Citrix Bleed). A crafted request triggers an out-of-bounds read that returns memory contents, including a valid session token belonging to a legitimate authenticated user.",
+      "leverage": "The attacker replays that token to inherit an already-authenticated session — no password, and critically no MFA prompt, because the session predates the second factor. A real, widely-exploited 2023 vulnerability, not a hypothetical.",
+      "refs": [
+        {
+          "fw": "CVE",
+          "id": "CVE-2023-4966",
+          "lbl": "Citrix NetScaler ADC/Gateway — sensitive information disclosure (Citrix Bleed)"
+        },
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1190",
+          "lbl": "Exploit Public-Facing Application (Initial Access)"
+        },
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1539",
+          "lbl": "Steal Web Session Cookie"
+        }
+      ],
+      "determined": "This edge starts the chain with a path_control_multiplier of 1.00 — an unpatched, exploitable appliance offers no control to reduce it. It carries no dollar figure itself; it feeds the deterministic multiplier the engine applies at each reachable financial node."
+    },
+    "e2": {
+      "title": "Session replayed past MFA to the jump host",
+      "how": "The stolen web session cookie is replayed against internal services, landing the attacker on a DMZ jump host. Because the token represents an established, authenticated session, the identity provider never issues an MFA challenge.",
+      "leverage": "This is the step that converts an edge-device flaw into interior access. The jump host is the shared choke point from which both later branches originate — which is exactly why segmenting it (a remediation fix) closes both routes at once.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1550.004",
+          "lbl": "Use Alternate Authentication Material: Web Session Cookie"
+        },
+        {
+          "fw": "OWASP Top 10 (2021)",
+          "id": "A07:2021",
+          "lbl": "Identification and Authentication Failures"
+        }
+      ],
+      "determined": "A distinct control-bypass factor (the replayable session) scored separately from the CVE on the previous hop, so the two failures are not double-counted. Multiplier 1.00 on this hop."
+    },
+    "e3": {
+      "title": "Assume the over-privileged IAM broker role",
+      "how": "From the jump host the attacker assumes an IAM broker role that fronts payment services. The role is a standing grant carrying wire-origination rights far beyond what the automation workflow it was created for actually needs.",
+      "leverage": "No account is modified and no elevation control is defeated — the attacker simply inherits a role that is already too powerful. That is incorrect privilege assignment, and it is what makes the high-value wire branch reachable.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1078.004",
+          "lbl": "Valid Accounts: Cloud Accounts"
+        },
+        {
+          "fw": "OWASP Top 10 (2021)",
+          "id": "A01:2021",
+          "lbl": "Broken Access Control"
+        },
+        {
+          "fw": "CWE",
+          "id": "CWE-266",
+          "lbl": "Incorrect Privilege Assignment"
+        }
+      ],
+      "determined": "This hop opens Branch A. The engine reads the role’s granted rights from config, not from its intended use — the gap between the two is the over-privilege this scenario is built on."
+    },
+    "e4": {
+      "title": "Wire origination through the SWIFT connector (Branch A)",
+      "how": "With the broker role, the attacker originates wires through Lion’s SWIFT connector. No second approver is enforced on this corridor, so single-actor origination succeeds and looks like normal treasury activity.",
+      "leverage": "Branch A is the high-value, fast-detection route: Lion’s payment-anomaly rule flags the corridor at 6h, so exposure is bounded by how much of the 24h capacity can move in that window.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1657",
+          "lbl": "Financial Theft"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API5:2023",
+          "lbl": "Broken Function Level Authorization"
+        }
+      ],
+      "determined": "Branch A exposure = exposed_capacity_24h $6,680,000 × detection_window_factor 0.25 (delay 6h) × control_multiplier 1.00 = $1,670,000. Enforcing dual-approval removes this edge and this $1.67M — but nothing else."
+    },
+    "e5": {
+      "title": "Reuse an automation-account token (Branch B opens)",
+      "how": "The same jump host holds a reusable token for a card-automation service account. The attacker reuses it to reach the card-issuing service — a second route that shares the entry and the jump host but nothing downstream.",
+      "leverage": "Because Branch B is independent of Branch A, fixing one does not touch the other. This independence is the whole point of the scenario: single branch-level controls leave residual exposure on the other route.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1550.001",
+          "lbl": "Use Alternate Authentication Material: Application Access Token"
+        },
+        {
+          "fw": "OWASP Top 10 (2021)",
+          "id": "A01:2021",
+          "lbl": "Broken Access Control"
+        }
+      ],
+      "determined": "A lateral step that opens Branch B; it sets no ceiling itself. Multiplier 1.00 on this hop — the reduction on this branch comes at the issuance edge below."
+    },
+    "e6": {
+      "title": "Uncontrolled bulk virtual-card issuance (Branch B)",
+      "how": "The automation account drives bulk virtual-card issuance through the card API. A velocity check trims part of the volume, but there is no hard limit on the automated business flow, so issuance continues at scale.",
+      "leverage": "Branch B is the slow-detection, larger-accrual route: the issuance monitor only flags at 18h. More of the 24h capacity is exposed, so despite the partial velocity control this branch carries the larger loss.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1657",
+          "lbl": "Financial Theft"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API6:2023",
+          "lbl": "Unrestricted Access to Sensitive Business Flows"
+        }
+      ],
+      "determined": "Branch B exposure = exposed_capacity_24h $5,000,000 × detection_window_factor 0.75 (delay 18h) × control_multiplier 0.80 (the velocity check) = $3,000,000. Revoking the card-issuing scope removes this edge and this $3.0M — but leaves the wire branch."
+    }
+  },
+  "phases": [
+    {
+      "phase": "Initial access",
+      "tactic": "T1190 · T1539",
+      "start": 0,
+      "end": 0.5,
+      "edge": "e1",
+      "detail": "CVE-2023-4966 (Citrix Bleed) is exploited against Lion Bank’s internet-facing NetScaler. An out-of-bounds read leaks a valid session token from a legitimate user — no credentials, no exploit payload on the host."
+    },
+    {
+      "phase": "Session replay",
+      "tactic": "T1550.004",
+      "start": 0.5,
+      "end": 1,
+      "edge": "e2",
+      "detail": "The leaked web session cookie is replayed to reach an internal jump host. Because the session is already authenticated, the MFA step is simply never presented."
+    },
+    {
+      "phase": "Privilege abuse",
+      "tactic": "T1078.004",
+      "start": 1,
+      "end": 2,
+      "edge": "e3",
+      "detail": "From the jump host the attacker assumes an over-privileged IAM broker role fronting payment services — a standing role carrying wire-origination rights it should never have held."
+    },
+    {
+      "phase": "Impact — wire (Branch A)",
+      "tactic": "T1657",
+      "start": 2,
+      "end": 6,
+      "edge": "e4",
+      "branch_exposure": 1670000,
+      "detail": "Wire origination through the SWIFT connector, no second approver on this corridor. Lion’s payment-anomaly rule flags the corridor at 6h — a fast branch, but a high-value one ($1.67M realised before detection)."
+    },
+    {
+      "phase": "Impact — card (Branch B)",
+      "tactic": "T1657 · API6",
+      "start": 2,
+      "end": 18,
+      "edge": "e6",
+      "branch_exposure": 3000000,
+      "detail": "In parallel, the automation account drives bulk virtual-card issuance. A velocity check trims part of the volume but does not stop it; the issuance monitor only flags at 18h — slower detection, larger accrual ($3.0M)."
+    },
+    {
+      "phase": "Detection (both branches)",
+      "tactic": "Control deficiency",
+      "start": 6,
+      "end": 18,
+      "edge": null,
+      "detail": "Assumption: the 6h wire alert is first handled as an isolated payment-fraud event, not yet correlated with the stolen NetScaler session, so only the wire activity is stopped. At 18h the card anomaly is detected and the investigation connects both branches to the same compromised session, triggering full containment. Different detectors saw symptoms without recognising the shared root compromise — exactly the gap attack-path intelligence closes. (The monitoring gap on the automation path is an absent detector: a control deficiency, not an attacker action, so no ATT&CK technique.)"
+    }
+  ],
+  "reasoning": [
+    {
+      "title": "Identify the entry point",
+      "verdict": "accepted",
+      "thought": "edge-netscaler is the only external node with an allowed outbound edge (e1). partner-api is external but its edge (e9) is denied.",
+      "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+      "title": "Name the first technique",
+      "verdict": "accepted",
+      "thought": "Leaking a live session token from an unpatched NetScaler is CVE-2023-4966 (Citrix Bleed): T1190 to reach the appliance, T1539 to steal the web session cookie. Replaying it is T1550.004 — the MFA step never fires.",
+      "check": "Validator: technique matches edge.permission semantics and the named CVE."
+    },
+    {
+      "title": "Find the fork",
+      "verdict": "accepted",
+      "thought": "From jump-host, two independent allowed routes exist: e3→e4 to swift-connector (wire) and e5→e6 to card-issuing-api (card). e7/e8 to core-ledger are denied by segmentation, so the ledger is out of reach.",
+      "check": "BFS cross-check: {swift-connector, card-issuing-api} ⊆ reachable; core-ledger ∉."
+    },
+    {
+      "title": "Read the detection delays",
+      "verdict": "deferred",
+      "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+      "check": "Supplied by bank configuration: detection_delay_hours 6 (wire) and 18 (card), read from bank.json. The model never estimates them."
+    },
+    {
+      "title": "Quantify exposure",
+      "verdict": "deferred",
+      "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+      "check": "Computed by the deterministic engine: $4,670,000 = $1,670,000 (wire) + $3,000,000 (card), each exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+      "title": "Consider lateral extension",
+      "verdict": "rejected",
+      "thought": "From card-issuing-api, e11 gives db_write on card-ledger-db, which could allow tampering to hide the issuance.",
+      "check": "Out of scope: card-ledger-db carries no exposed_capacity_24h, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+  ],
+  "ai_estimate": {
+    "low": 4000000,
+    "high": 6000000
+  },
+  "narrative_template": "One compromised edge session creates two independent routes to financial loss. From an unpatched NetScaler (CVE-2023-4966), the attacker replays a stolen session past MFA to a shared jump host, then forks: wire origination through the SWIFT connector and bulk virtual-card issuance through an automation account. Against detection delays of 6h and 18h on the two branches, up to {exposure} moves before containment, with {disruption} hours of multi-system recovery at risk. Branch-level controls reduce only part of the exposure; broader controls close the shared attack path at greater operational cost. Lion Bank turns that trade-off into an auditable remediation decision."
+}

@@ -1,0 +1,100 @@
+# Split services: backend (FastAPI) + frontend (nginx serving the SPA, proxying /api).
+# The root Dockerfile is still the single-container Cloud Run image (TRD §2, TR-11).
+#
+# Two profiles in one file — run one at a time (they share port 8000):
+#   prod: docker compose --profile prod up -d --build      app :8888, API :8000
+#   dev:  docker compose --profile dev up --build --watch  Vite :5173 (hot reload), API :8000
+name: xploit-lab
+
+x-backend: &backend
+  env_file:
+    - path: .env
+      required: false
+  ports:
+    - "${BACKEND_PORT:-8000}:8000"
+
+services:
+  # ── prod ──────────────────────────────────────────────────────────────
+  backend:
+    <<: *backend
+    profiles: [prod]
+    build:
+      context: ./backend
+      target: prod
+    restart: unless-stopped
+
+  frontend:
+    profiles: [prod]
+    build:
+      context: ./frontend
+      target: prod
+    environment:
+      BACKEND_URL: http://backend:8000
+    ports:
+      - "${FRONTEND_PORT:-8888}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── dev: hot-reload targets + `docker compose watch` file sync ────────
+  backend-dev:
+    <<: *backend
+    profiles: [dev]
+    image: xploit-lab-backend:dev
+    build:
+      context: ./backend
+      target: dev
+    networks:
+      default:
+        aliases: [backend]   # frontend-dev proxies to http://backend:8000
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/app
+          target: /app/backend/app
+          ignore:
+            - "**/__pycache__"
+        - action: sync
+          path: ./backend/data
+          target: /app/backend/data
+        - action: sync
+          path: ./backend/tests
+          target: /app/backend/tests
+          ignore:
+            - "**/__pycache__"
+        - action: rebuild
+          path: ./backend/pyproject.toml
+        - action: rebuild
+          path: ./backend/uv.lock
+
+  frontend-dev:
+    profiles: [dev]
+    image: xploit-lab-frontend:dev
+    build:
+      context: ./frontend
+      target: dev
+    environment:
+      API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "${FRONTEND_DEV_PORT:-5173}:5173"
+    depends_on:
+      backend-dev:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/frontend/src
+        - action: sync
+          path: ./frontend/index.html
+          target: /app/frontend/index.html
+        - action: sync
+          path: ./frontend/tsconfig.json
+          target: /app/frontend/tsconfig.json
+        - action: rebuild
+          path: ./frontend/package.json
+        - action: rebuild
+          path: ./frontend/pnpm-lock.yaml
+        - action: rebuild
+          path: ./frontend/vite.config.ts

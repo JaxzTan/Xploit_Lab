@@ -1,0 +1,331 @@
+{
+  "id": "lion",
+  "meta": {
+    "id": "lion",
+    "name": "Lion Bank",
+    "headline_lead": "One compromised edge session exposes ",
+    "headline_tail": " across two financial systems at Lion Bank",
+    "label": "lion-bank · 13 nodes · 13 edges",
+    "entry_label": "edge-netscaler",
+    "hops_word": "six",
+    "validator": "6/6 hops verified against config",
+    "pipeline_edges": "6/6 allowed edges",
+    "idle_h1": "What can one compromised edge session move inside Lion Bank?",
+    "idle_intro": "Lion Bank’s synthetic environment",
+    "cyber_note": "swift-connector + card-issuing-api (two branches) reachable",
+    "exp_note": "modeled exposure · wire + card branches",
+    "mttd_phrase": "detection delays of 6h (wire) and 18h (card) that this attack outruns",
+    "avoided": 4670000,
+    "stackable": true,
+    "entity": "Lion Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Payment-card obligations: potentially applicable",
+    "recovery_policy": "96h — synthetic multi-system recovery-policy lookup (cross-border wire recall + card reissuance), Lion BCP-12"
+  },
+  "entry": "edge-vpn",
+  "nodes": [
+    {
+      "id": "edge-vpn",
+      "name": "edge-netscaler",
+      "plain_name": "Remote Access Gateway",
+      "type": "external",
+      "criticality": "high",
+      "x": 70,
+      "y": 240,
+      "entry": true
+    },
+    {
+      "id": "stolen-session",
+      "name": "stolen-session",
+      "plain_name": "Hijacked Employee Session",
+      "type": "identity",
+      "criticality": "high",
+      "x": 280,
+      "y": 240
+    },
+    {
+      "id": "jump-host",
+      "name": "jump-host",
+      "plain_name": "Internal Admin Server",
+      "type": "process",
+      "criticality": "high",
+      "x": 490,
+      "y": 240
+    },
+    {
+      "id": "iam-role-broker",
+      "name": "iam-role-broker",
+      "plain_name": "Payment Access Role",
+      "type": "identity",
+      "criticality": "critical",
+      "x": 700,
+      "y": 110
+    },
+    {
+      "id": "automation-svc",
+      "name": "automation-svc",
+      "plain_name": "Card Automation Account",
+      "type": "identity",
+      "criticality": "high",
+      "x": 700,
+      "y": 380
+    },
+    {
+      "id": "swift-connector",
+      "name": "swift-connector",
+      "plain_name": "High-Value Wire Payment Interface",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 6680000,
+      "detection_delay_hours": 6,
+      "detection_delay_evidence": "SWIFT payment-anomaly rule, detection_delay_hours 6 (config, 90-day median)",
+      "x": 910,
+      "y": 110
+    },
+    {
+      "id": "card-issuing-api",
+      "name": "card-issuing-api",
+      "plain_name": "Virtual Card Issuing System",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 5000000,
+      "detection_delay_hours": 18,
+      "detection_delay_evidence": "Card-issuance velocity monitor, detection_delay_hours 18 (config, 90-day median)",
+      "x": 910,
+      "y": 380
+    },
+    {
+      "id": "core-ledger",
+      "name": "core-ledger",
+      "plain_name": "Core Banking Ledger",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 20000000,
+      "detection_delay_hours": 3,
+      "x": 490,
+      "y": 470
+    },
+    {
+      "id": "monitoring-gap",
+      "name": "monitoring-gap",
+      "plain_name": "Monitoring Gap",
+      "type": "service",
+      "criticality": "medium",
+      "x": 700,
+      "y": 560
+    },
+    {
+      "id": "partner-api",
+      "name": "partner-api",
+      "plain_name": "External Partner Connection",
+      "type": "external",
+      "criticality": "medium",
+      "x": 70,
+      "y": 470
+    },
+    {
+      "id": "backup-vault",
+      "name": "backup-vault",
+      "plain_name": "Protected Backup Storage",
+      "type": "data",
+      "criticality": "critical",
+      "x": 1120,
+      "y": 110
+    },
+    {
+      "id": "card-ledger-db",
+      "name": "card-ledger-db",
+      "plain_name": "Card Records Database",
+      "type": "data",
+      "criticality": "high",
+      "x": 1120,
+      "y": 380
+    },
+    {
+      "id": "audit-log",
+      "name": "audit-log",
+      "plain_name": "Audit Log",
+      "type": "service",
+      "criticality": "medium",
+      "x": 1120,
+      "y": 560
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "e1",
+      "source": "edge-vpn",
+      "destination": "stolen-session",
+      "permission": "session_token_leak",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "CVE-2023-4966 (Citrix Bleed): an out-of-bounds read on the NetScaler appliance leaks a valid session token from a legitimate user, replayable without credentials or MFA."
+    },
+    {
+      "edge_id": "e2",
+      "source": "stolen-session",
+      "destination": "jump-host",
+      "permission": "session_replay",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The leaked web session cookie is replayed to reach an internal jump host in the DMZ. The session is already authenticated, so no MFA challenge is presented."
+    },
+    {
+      "edge_id": "e3",
+      "source": "jump-host",
+      "destination": "iam-role-broker",
+      "permission": "assume_role",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "From the jump host the attacker assumes an over-privileged IAM broker role that fronts payment services — a standing role with wire-origination rights it should not hold."
+    },
+    {
+      "edge_id": "e4",
+      "source": "iam-role-broker",
+      "destination": "swift-connector",
+      "permission": "wire_originate",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The broker role can originate wires through the SWIFT connector with no second approver enforced on this corridor."
+    },
+    {
+      "edge_id": "e5",
+      "source": "jump-host",
+      "destination": "automation-svc",
+      "permission": "token_reuse",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The jump host also holds a reusable token for the card-automation service account — a second, independent route off the same foothold."
+    },
+    {
+      "edge_id": "e6",
+      "source": "automation-svc",
+      "destination": "card-issuing-api",
+      "permission": "card_issue",
+      "allowed": true,
+      "control_multiplier": 0.8,
+      "evidence": "The automation account can drive bulk virtual-card issuance. A velocity check trims part of the volume (path_control_multiplier 0.80) but does not stop the flow."
+    },
+    {
+      "edge_id": "e7",
+      "source": "jump-host",
+      "destination": "core-ledger",
+      "permission": "ledger_write",
+      "allowed": false
+    },
+    {
+      "edge_id": "e8",
+      "source": "automation-svc",
+      "destination": "core-ledger",
+      "permission": "ledger_write",
+      "allowed": false
+    },
+    {
+      "edge_id": "e9",
+      "source": "edge-vpn",
+      "destination": "partner-api",
+      "permission": "proxy",
+      "allowed": false
+    },
+    {
+      "edge_id": "e10",
+      "source": "swift-connector",
+      "destination": "backup-vault",
+      "permission": "archive_read",
+      "allowed": true,
+      "control_multiplier": 0.5
+    },
+    {
+      "edge_id": "e11",
+      "source": "card-issuing-api",
+      "destination": "card-ledger-db",
+      "permission": "db_write",
+      "allowed": true,
+      "control_multiplier": 0.6
+    },
+    {
+      "edge_id": "e12",
+      "source": "automation-svc",
+      "destination": "monitoring-gap",
+      "permission": "run_unmonitored",
+      "allowed": true,
+      "control_multiplier": 1
+    },
+    {
+      "edge_id": "e13",
+      "source": "card-issuing-api",
+      "destination": "audit-log",
+      "permission": "append_only",
+      "allowed": true,
+      "control_multiplier": 1
+    }
+  ],
+  "rules": {
+    "disruption": {
+      "multi_critical": 96,
+      "critical": 72,
+      "high": 24,
+      "medium": 8
+    },
+    "rule_ids": {
+      "R-EXP-1": "exposure = exposed_capacity_24h_usd × detection_window_factor × control_multiplier",
+      "R-WIN-1": "detection_window_factor = min(detection_delay_hours / 24, 1)",
+      "R-BYP-1": "control_multiplier = best product of edge.control_multiplier over simple paths from entry",
+      "R-DIS-1": "disruption = max tier lookup over reached nodes; 1 critical financial system ⇒ critical tier; 2+ ⇒ multi_critical",
+      "R-CYB-1": "cyber_risk = HIGH if any critical node reached, MEDIUM if any high, else LOW",
+      "R-REG-1": "DORA (simulated): critical-function financial system reached via unauthorized access ⇒ MAJOR, else BELOW",
+      "R-UNK-1": "missing evidence ⇒ factor 1.0, complete=false, UI shows 'up to $X'"
+    }
+  },
+  "changes": [
+    {
+      "id": "patch-citrix",
+      "label": "Emergency NetScaler remediation: patch + invalidate sessions",
+      "op": "remove_edge",
+      "target": "e1",
+      "effort": 4,
+      "cuts": "both",
+      "note": "Patch CVE-2023-4966 AND terminate active/persistent sessions (per NetScaler guidance). Patching alone would not revoke the already-stolen session — invalidation is what actually closes the shared entry. Both branches fall."
+    },
+    {
+      "id": "revoke-card-scope",
+      "label": "Revoke automation card-issuing scope",
+      "op": "remove_edge",
+      "target": "e6",
+      "effort": 1,
+      "cuts": "card branch",
+      "note": "Branch-level: removes bulk card issuance from the automation account. Cheap and fast, but the wire branch remains."
+    },
+    {
+      "id": "swift-dual-approval",
+      "label": "Enforce SWIFT dual-approval",
+      "op": "remove_edge",
+      "target": "e4",
+      "effort": 2,
+      "cuts": "wire branch",
+      "note": "Branch-level: a mandatory second approver breaks single-actor wire origination. Leaves the card branch open."
+    },
+    {
+      "id": "segment-jump-host",
+      "label": "Segment the jump host",
+      "op": "remove_edge",
+      "target": "e2",
+      "effort": 8,
+      "cuts": "both",
+      "note": "Network control at the shared choke point. Closes both branches, but the segmentation project is the highest-effort option and may disrupt legitimate flows."
+    },
+    {
+      "id": "clear-evidence",
+      "label": "Evidence gap: card detection delay unknown",
+      "op": "clear_evidence",
+      "target": "card-issuing-api",
+      "field": "detection_delay_hours",
+      "effort": 0,
+      "cuts": "none",
+      "note": "Unknown ≠ safe: with no detection_delay evidence, the engine holds the card branch at its full ceiling and marks the verdict incomplete."
+    }
+  ]
+}

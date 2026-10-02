@@ -1,0 +1,225 @@
+{
+  "entry_point": "public-repo",
+  "steps": [
+    {
+      "from": "public-repo",
+      "to": "corp-pay-key",
+      "technique": "Unsecured Credentials: Credentials in Files (T1552.001) — a payments key committed to a public repo",
+      "evidence_edge": "e1"
+    },
+    {
+      "from": "corp-pay-key",
+      "to": "payments-api",
+      "technique": "Valid Accounts: Cloud Accounts (T1078.004) — a leaked static key authenticates to the payments API",
+      "evidence_edge": "e2"
+    },
+    {
+      "from": "payments-api",
+      "to": "originator-profile",
+      "technique": "Account Discovery (T1087) — enumerate accounts under the shared ACH originator profile",
+      "evidence_edge": "e3"
+    },
+    {
+      "from": "originator-profile",
+      "to": "ach-gateway",
+      "technique": "Financial Theft via over-scoped token (T1657) — leftover ach_originate on the machine identity",
+      "evidence_edge": "e4"
+    }
+  ],
+  "systems_reached": [
+    "corp-pay-key",
+    "payments-api",
+    "originator-profile",
+    "ach-gateway"
+  ],
+  "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4"
+  ],
+  "on_path": [
+    "public-repo",
+    "corp-pay-key",
+    "payments-api",
+    "originator-profile",
+    "ach-gateway"
+  ],
+  "techniques": {
+    "e1": "Unsecured Credentials: Credentials in Files (T1552.001) — a payments key committed to a public repo",
+    "e2": "Valid Accounts: Cloud Accounts (T1078.004) — a leaked static key authenticates to the payments API",
+    "e3": "Account Discovery (T1087) — enumerate accounts under the shared ACH originator profile",
+    "e4": "Financial Theft via over-scoped token (T1657) — leftover ach_originate on the machine identity",
+    "e5": "Impact: staged NACHA batches (TA0040) — split below per-transaction review thresholds"
+  },
+  "hop_details": {
+    "e1": {
+      "title": "Payments API key committed to a public repo",
+      "how": "A partner integration commits a live corporate-payments API key into a public GitHub repository. Automated secret scanners — the same ones defenders run — surface it within minutes of the push, and so does the attacker.",
+      "leverage": "The attacker never has to breach a perimeter: the credential is already outside it. A single balance-read call confirms the key is live and privileged, giving a trusted foothold with no login anomaly to detect.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1552.001",
+          "lbl": "Unsecured Credentials: Credentials in Files"
+        },
+        {
+          "fw": "CWE",
+          "id": "CWE-798",
+          "lbl": "Use of Hard-coded Credentials"
+        }
+      ],
+      "determined": "This edge starts the chain with control_multiplier 1.0 — a leaked static key has no second factor to stop it. It carries no dollar figure itself; it feeds the end-to-end path bypass the engine multiplies later."
+    },
+    "e2": {
+      "title": "Leaked static key authenticates to the payments API",
+      "how": "The key authenticates to the Corporate Payments API. It is a long-lived machine identity: no MFA is possible, and no IP allow-list constrains where it can be used from, so the request looks identical to legitimate partner traffic.",
+      "leverage": "By reusing a valid machine identity, the attacker acts as the partner integration itself. There is no user account to lock, no password to reset — the key is the identity, and it is already trusted.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1078.004",
+          "lbl": "Valid Accounts: Cloud Accounts"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API2:2023",
+          "lbl": "Broken Authentication"
+        }
+      ],
+      "determined": "The key’s granted scope — read from the IAM export, not the partner’s stated need — sets the eventual blast radius. Bypass probability 1.0: the authentication control is effectively absent."
+    },
+    "e3": {
+      "title": "Enumerate accounts under the shared originator profile",
+      "how": "The key reads the shared ACH originator profile and lists every corporate account grouped under the same originator ID — a mapping of where funds can legitimately be pushed from this identity.",
+      "leverage": "Shared originator profiles let one compromised key see and act across many accounts. The attacker uses this to pick beneficiary structures that spread the fraud thin enough to stay under per-transaction review.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1087",
+          "lbl": "Account Discovery"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API1:2023",
+          "lbl": "Broken Object Level Authorization"
+        }
+      ],
+      "determined": "This hop widens reachability but sets no ceiling on its own. The engine records it as a discovery step that makes the origination hop’s full limit realistically usable."
+    },
+    "e4": {
+      "title": "Leftover ach_originate scope on the machine identity",
+      "how": "The key still carries an ach_originate scope, granted for a 2025 migration and never revoked. With it, the identity submits ACH origination batches directly to the ACH gateway — no escalation needed.",
+      "leverage": "This is the over-provisioning that turns a read-only-looking partner key into a money-movement capability. The attacker submits origination batches the integration was never designed to touch.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1657",
+          "lbl": "Financial Theft"
+        },
+        {
+          "fw": "CWE",
+          "id": "CWE-269",
+          "lbl": "Improper Privilege Management"
+        }
+      ],
+      "determined": "This hop locks in the number: exposed_capacity_24h $4.1M (the ACH gateway’s configured same-day origination ceiling) × detection_window_factor 1.0 (0% path coverage) × control_multiplier 1.0 = $4,100,000. A configured limit, not a probability estimate."
+    },
+    "e5": {
+      "title": "Batches staged as routine NACHA files",
+      "how": "Origination is split across multiple beneficiary accounts and formatted to match routine NACHA batch metadata, keeping each entry below the per-transaction review threshold.",
+      "leverage": "By shaping the fraud to look like normal batch activity, the attacker avoids the manual-review queue entirely. The fraud engine is tuned for card-not-present patterns, so batch ACH anomalies never trip it.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "TA0040",
+          "lbl": "Impact (tactic)"
+        },
+        {
+          "fw": "CIS Controls v8",
+          "id": "Control 8",
+          "lbl": "Audit Log Management — the coverage gap exploited"
+        }
+      ],
+      "determined": "A defender gap, not a new privilege: it drives the 0% detection coverage on this path, which is why detection_window_factor stays at its 1.0 ceiling rather than trimming the exposure."
+    }
+  },
+  "phases": [
+    {
+      "phase": "Initial access",
+      "tactic": "TA0001",
+      "start": 0,
+      "end": 0.5,
+      "edge": "e1",
+      "detail": "A live corporate-payments API key is committed to a public GitHub repo by a partner integration. Attacker-side secret scanners flag it within minutes; a balance-read confirms the key is live and privileged."
+    },
+    {
+      "phase": "Discovery",
+      "tactic": "TA0007",
+      "start": 0.5,
+      "end": 1.5,
+      "edge": "e3",
+      "detail": "The key reads the shared ACH originator profile and enumerates the linked corporate accounts under the same originator ID — mapping where money can be pushed."
+    },
+    {
+      "phase": "Privilege abuse",
+      "tactic": "TA0004",
+      "start": 1.5,
+      "end": 2,
+      "edge": "e4",
+      "detail": "A leftover ach_originate scope, added for a 2025 migration and never revoked, lets the machine identity submit ACH origination batches directly."
+    },
+    {
+      "phase": "Impact — ACH",
+      "tactic": "TA0040",
+      "start": 2,
+      "end": 24,
+      "edge": "e4",
+      "branch_exposure": 4100000,
+      "detail": "Origination batches are split across beneficiary accounts to stay under per-transaction review thresholds. The fraud engine is tuned for card-not-present, not batch ACH — 0% coverage on this path, so nothing pages the SOC."
+    }
+  ],
+  "reasoning": [
+    {
+      "title": "Identify the entry point",
+      "verdict": "accepted",
+      "thought": "public-repo is the only external node with an allowed outbound edge (e1) — a leaked secret. partner-sftp is external but every edge on it is denied.",
+      "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+      "title": "Name the first technique",
+      "verdict": "accepted",
+      "thought": "A live key in a public commit is T1552.001 (Credentials in Files); replaying it is T1078.004 (Valid Accounts: Cloud). Bypass probability 1.0 in config agrees — a static key has no second factor to stop it.",
+      "check": "Validator: technique matches edge.permission semantics."
+    },
+    {
+      "title": "Walk the chain to a financial node",
+      "verdict": "accepted",
+      "thought": "From payments-api: e3 (originator-profile) → e4 (ach-gateway). e6 (card-switch) and e7 (wire-gateway) are denied, so the path is a single line to ach-gateway.",
+      "check": "BFS cross-check: ach-gateway ∈ reachable; card-switch, wire-gateway ∉."
+    },
+    {
+      "title": "Read the detection delays",
+      "verdict": "deferred",
+      "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+      "check": "Supplied by bank configuration: detection_delay_hours read from bank.json. The model never estimates them."
+    },
+    {
+      "title": "Quantify exposure",
+      "verdict": "deferred",
+      "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+      "check": "Computed by the deterministic engine: exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+      "title": "Consider lateral extension",
+      "verdict": "rejected",
+      "thought": "From ach-gateway, e10 gives post_entry on ledger-db, which could allow ledger tampering to hide the batches.",
+      "check": "Out of scope: ledger-db carries no exposed_capacity_24h_usd, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+  ],
+  "ai_estimate": {
+    "low": 4000000,
+    "high": 5000000
+  },
+  "narrative_template": "A payments API key leaked to a public repo reaches Hydra Bank’s ACH estate in {hops} hops without breaking a single control — from a public commit through the payments API and a shared originator profile to the ACH gateway. Against {mttd} on that path, an attacker can move up to {exposure} before anyone is paged, and hold {disruption} hours of critical payment processing at risk. Revoking the one scope nobody uses removes {avoided} of that exposure for about an hour of work."
+}

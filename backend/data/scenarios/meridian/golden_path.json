@@ -1,0 +1,267 @@
+{
+  "entry_point": "clearpay-inbox",
+  "steps": [
+    {
+      "from": "clearpay-inbox",
+      "to": "clearpay-keyvault",
+      "technique": "Spearphishing Link (T1566.002) — a cloned O365 page harvests a ClearPay credential",
+      "evidence_edge": "e1"
+    },
+    {
+      "from": "clearpay-keyvault",
+      "to": "vendor-int-gateway",
+      "technique": "Valid Accounts: Cloud Accounts (T1078.004) — a static vendor API key replays into Meridian",
+      "evidence_edge": "e2"
+    },
+    {
+      "from": "vendor-int-gateway",
+      "to": "hr-fileshare",
+      "technique": "Trusted Relationship (T1199) — over-scoped vendor gateway reaches the HR file-share",
+      "evidence_edge": "e3"
+    },
+    {
+      "from": "hr-fileshare",
+      "to": "meridian-idp",
+      "technique": "Steal/Forge Application Access Token (T1528 / T1550.001) — a cached federated token",
+      "evidence_edge": "e4"
+    },
+    {
+      "from": "meridian-idp",
+      "to": "treasury-approve",
+      "technique": "Valid Accounts → Privilege Escalation (T1078.004) — session minted as Treasury-Approve",
+      "evidence_edge": "e5"
+    },
+    {
+      "from": "treasury-approve",
+      "to": "payments-core",
+      "technique": "Financial Theft (T1657) — payment_write on the legacy Treasury-Approve role",
+      "evidence_edge": "e6"
+    }
+  ],
+  "systems_reached": [
+    "clearpay-keyvault",
+    "vendor-int-gateway",
+    "hr-fileshare",
+    "meridian-idp",
+    "treasury-approve",
+    "payments-core"
+  ],
+  "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4",
+    "e5",
+    "e6"
+  ],
+  "on_path": [
+    "clearpay-inbox",
+    "clearpay-keyvault",
+    "vendor-int-gateway",
+    "hr-fileshare",
+    "meridian-idp",
+    "treasury-approve",
+    "payments-core"
+  ],
+  "techniques": {
+    "e1": "Spearphishing Link (T1566.002) — a cloned O365 page harvests a ClearPay credential",
+    "e2": "Valid Accounts: Cloud Accounts (T1078.004) — a static vendor API key replays into Meridian",
+    "e3": "Trusted Relationship (T1199) — over-scoped vendor gateway reaches the HR file-share",
+    "e4": "Steal/Forge Application Access Token (T1528 / T1550.001) — a cached federated token",
+    "e5": "Valid Accounts → Privilege Escalation (T1078.004) — session minted as Treasury-Approve",
+    "e6": "Financial Theft (T1657) — payment_write on the legacy Treasury-Approve role"
+  },
+  "hop_details": {
+    "e1": {
+      "title": "Spear-phishing link harvests a ClearPay credential",
+      "how": "The attacker sends a spear-phishing email with a link to a cloned Microsoft 365 login page spoofing ClearPay’s IT helpdesk domain. The victim enters live credentials, captured in real time by the phishing kit. No attachment or malware, so email-gateway attachment scanning never triggers.",
+      "leverage": "Those credentials are the only thing standing between the attacker and ClearPay’s key vault. Because the vault enforces no second factor, one harvested password is enough to reach and export a live vendor API key in the next hop.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1566.002",
+          "lbl": "Spearphishing Link — Initial Access (TA0001)"
+        }
+      ],
+      "determined": "This edge sits at the very start of the chain. It carries no dollar figure itself — no Meridian system is touched yet — but its control_multiplier of 1.0 records that nothing stopped it, which feeds the end-to-end path bypass the engine multiplies later."
+    },
+    "e2": {
+      "title": "Static vendor API key replays into Meridian",
+      "how": "The stolen credential opens ClearPay’s key-management portal (again, no MFA) and exports a live API key scoped to Meridian’s vendor integration gateway. The key authenticates cleanly — it is a valid machine identity with no IP allow-list, so the request is indistinguishable from normal vendor traffic.",
+      "leverage": "A long-lived static key means the attacker inherits a trusted machine identity without ever touching a Meridian employee account. There is no login anomaly to page on, because from Meridian’s side this is the vendor doing exactly what the vendor always does.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1078.004",
+          "lbl": "Valid Accounts: Cloud Accounts — Defense Evasion / Persistence"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API2:2023",
+          "lbl": "Broken Authentication"
+        }
+      ],
+      "determined": "The key’s granted scope — read from the IAM export, not the vendor’s stated need — is what sets the eventual blast radius. Bypass probability 1.0: a static key with no MFA is a control that is effectively absent."
+    },
+    "e3": {
+      "title": "Over-scoped gateway reaches the HR file-share",
+      "how": "The API key authenticates to the Vendor Integration Gateway. Its scope was provisioned broadly at onboarding for \"partner integration\" and never narrowed to the read-only invoice endpoints ClearPay actually uses — so it also carries write access to the HR file-share.",
+      "leverage": "The attacker uses the unneeded write scope to pivot off the vendor integration and into an internal system, turning a partner API into an internal foothold. This is the over-provisioning that converts a vendor incident into a Meridian incident.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1199",
+          "lbl": "Trusted Relationship — abusing third-party access"
+        },
+        {
+          "fw": "OWASP API Top 10 (2023)",
+          "id": "API5:2023",
+          "lbl": "Broken Function Level Authorization"
+        },
+        {
+          "fw": "CWE",
+          "id": "CWE-269",
+          "lbl": "Improper Privilege Management"
+        }
+      ],
+      "determined": "This is the first hop the graph scores as a privilege boundary crossing. The engine reads the scope directly from config; the gap between what the key can reach and what it was meant to reach is exactly what \"over-provisioned\" means."
+    },
+    "e4": {
+      "title": "Cached federated token discovered",
+      "how": "Pivoting through the write-scoped HR file-share, the attacker finds a cached OAuth session token left in a config file by a legitimate service account — never rotated or deleted after a prior migration.",
+      "leverage": "The cached token still carries active federation trust to Meridian’s identity provider. Rather than crack anything, the attacker simply reuses valid authentication material to move toward the IdP — a credential-hygiene failure, not an exploit.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1528",
+          "lbl": "Steal Application Access Token"
+        },
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1550.001",
+          "lbl": "Use Alternate Authentication Material: Application Access Token"
+        }
+      ],
+      "determined": "The engine scores this as a distinct control-bypass factor — the leftover token — separate from the IAM scope issue on the previous hop, so the two failures are not double-counted."
+    },
+    "e5": {
+      "title": "Session minted as Treasury-Approve",
+      "how": "The cached token’s federation trust lets the attacker mint a full session at the IdP. That session inherits the legacy \"Treasury-Approve\" group — a role grouping created for a since-dissolved team and never cleaned up in the 2024 reorg.",
+      "leverage": "Privilege escalation happens without a single failed-login alert: the attacker never guesses a password, they inherit an over-broad role that already exists. The session now holds payment authority it was never meant to have.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1078.004",
+          "lbl": "Valid Accounts: Cloud Accounts — Privilege Escalation (TA0004)"
+        },
+        {
+          "fw": "OWASP Top 10 (2021)",
+          "id": "A01:2021",
+          "lbl": "Broken Access Control"
+        },
+        {
+          "fw": "CWE",
+          "id": "CWE-269",
+          "lbl": "Improper Privilege Management"
+        }
+      ],
+      "determined": "This hop sets the financial ceiling. The engine looks up every role the session inherits and takes the highest transaction authority among them — Treasury-Approve is what turns a data-access incident into a payments incident."
+    },
+    "e6": {
+      "title": "payment_write on the legacy Treasury-Approve role",
+      "how": "With Treasury-Approve privileges the session authenticates directly to the Core Payment System. No further exploitation is needed — to payments-core this is a valid, trusted login carrying a $2.4M / 24-hour transaction ceiling.",
+      "leverage": "The attacker stages transfers to match the metadata of a routine weekly ClearPay settlement batch, keeping them below manual-review thresholds. SIEM coverage on this vendor→treasury path is 0%, so the transfers accrue with nothing to page the SOC.",
+      "refs": [
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "T1657",
+          "lbl": "Financial Theft"
+        },
+        {
+          "fw": "MITRE ATT&CK",
+          "id": "TA0040",
+          "lbl": "Impact (tactic)"
+        }
+      ],
+      "determined": "This is the hop that locks in the number: exposed_capacity_24h $2.4M (read from the gateway config) × detection_window_factor 1.0 (0% path coverage) × control_multiplier 1.0 = $2,400,000. A configured limit, not a probability estimate."
+    }
+  },
+  "phases": [
+    {
+      "phase": "Initial access",
+      "tactic": "TA0001",
+      "start": 0,
+      "end": 0.5,
+      "edge": "e1",
+      "detail": "A phished ClearPay employee hands over an O365 credential, which opens the vendor key vault and exports a live API key. It replays into Meridian’s gateway — no MFA, no IP allow-list — and looks identical to normal vendor traffic."
+    },
+    {
+      "phase": "Discovery",
+      "tactic": "TA0007",
+      "start": 0.5,
+      "end": 1.5,
+      "edge": "e3",
+      "detail": "The over-scoped gateway key carries write to the HR file-share. Pivoting through it, the attacker finds a cached federated token left in a config file after a prior migration."
+    },
+    {
+      "phase": "Privilege escalation",
+      "tactic": "TA0004",
+      "start": 1.5,
+      "end": 2.5,
+      "edge": "e5",
+      "detail": "The cached token mints a session in the legacy Treasury-Approve group — a role grouping never cleaned up in the 2024 reorg. No failed-login alert ever fires."
+    },
+    {
+      "phase": "Impact — payments",
+      "tactic": "TA0040",
+      "start": 2.5,
+      "end": 24,
+      "edge": "e6",
+      "branch_exposure": 2400000,
+      "detail": "Treasury-Approve carries a $2.4M / 24-hr ceiling. Transfers are staged as routine ClearPay settlement batches; SIEM coverage on this vendor→treasury path is 0%, so nothing pages the SOC."
+    }
+  ],
+  "reasoning": [
+    {
+      "title": "Identify the entry point",
+      "verdict": "accepted",
+      "thought": "clearpay-inbox is the only external node with an allowed outbound edge (e1). partner-sftp is external but every edge on it is denied — a red herring.",
+      "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+      "title": "Name the first technique",
+      "verdict": "accepted",
+      "thought": "A phished credential replaying a static api_key_auth on a machine identity with no second factor is T1078.004 (Valid Accounts: Cloud). Bypass probability 1.0 in config agrees — the control is effectively absent.",
+      "check": "Validator: technique matches edge.permission semantics."
+    },
+    {
+      "title": "Walk the chain to a financial node",
+      "verdict": "accepted",
+      "thought": "From vendor-int-gateway: e3 (HR file-share) → e4 (cached token → IdP) → e5 (Treasury-Approve) → e6 (payments-core). e8 (refunds) and e9 (treasury-ledger) are denied, so the path is a single line to payments-core.",
+      "check": "BFS cross-check: payments-core ∈ reachable; refunds-api, treasury-ledger ∉."
+    },
+    {
+      "title": "Read the detection delays",
+      "verdict": "deferred",
+      "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+      "check": "Supplied by bank configuration: detection_delay_hours read from bank.json. The model never estimates them."
+    },
+    {
+      "title": "Quantify exposure",
+      "verdict": "deferred",
+      "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+      "check": "Computed by the deterministic engine: exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+      "title": "Consider lateral extension",
+      "verdict": "rejected",
+      "thought": "From payments-core, e11 gives db_write on core-ledger-db, which could allow ledger tampering to hide the transfers.",
+      "check": "Out of scope: core-ledger-db carries no exposed_capacity_24h_usd, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+  ],
+  "ai_estimate": {
+    "low": 2400000,
+    "high": 3100000
+  },
+  "narrative_template": "A phished ClearPay credential reaches Meridian’s payment estate in {hops} hops without breaking a single control — from a vendor inbox through an over-scoped gateway and a legacy Treasury-Approve role to payments-core. Against {mttd} on that path, an attacker can move up to {exposure} before anyone is paged, and hold {disruption} hours of critical payment processing at risk. Revoking the one permission nobody uses removes {avoided} of that exposure for about an hour of work."
+}

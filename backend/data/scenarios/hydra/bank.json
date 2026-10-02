@@ -1,0 +1,315 @@
+{
+  "id": "hydra",
+  "meta": {
+    "id": "hydra",
+    "name": "Hydra Bank",
+    "headline_lead": "A leaked API key exposes ",
+    "headline_tail": " across the ACH path at Hydra Bank",
+    "entity": "Hydra Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Critical payment service reached via unauthorized access",
+    "label": "hydra-bank · 13 nodes · 13 edges",
+    "entry_label": "public-repo",
+    "hops_word": "four",
+    "validator": "4/4 hops verified against config",
+    "pipeline_edges": "4/4 allowed edges",
+    "idle_h1": "What can a leaked payments API key move inside Hydra Bank?",
+    "idle_intro": "Hydra Bank’s synthetic environment",
+    "cyber_note": "Hydra ach-gateway (critical) is reachable",
+    "exp_note": "movable before detection · ach-gateway",
+    "mttd_phrase": "a detection window this path never trips (0% ACH coverage)",
+    "avoided": 4100000
+  },
+  "entry": "public-repo",
+  "nodes": [
+    {
+      "id": "public-repo",
+      "name": "public-repo",
+      "plain_name": "Public Code Repository",
+      "type": "external",
+      "criticality": "medium",
+      "x": 70,
+      "y": 90,
+      "entry": true
+    },
+    {
+      "id": "corp-pay-key",
+      "name": "corp-pay-key",
+      "plain_name": "Corporate Payments Key",
+      "type": "identity",
+      "criticality": "high",
+      "x": 300,
+      "y": 90
+    },
+    {
+      "id": "payments-api",
+      "name": "payments-api",
+      "plain_name": "Corporate Payments API",
+      "type": "identity",
+      "criticality": "high",
+      "x": 520,
+      "y": 90
+    },
+    {
+      "id": "originator-profile",
+      "name": "originator-profile",
+      "plain_name": "Shared Originator Profile",
+      "type": "data",
+      "criticality": "high",
+      "x": 520,
+      "y": 260
+    },
+    {
+      "id": "ach-gateway",
+      "name": "ach-gateway",
+      "plain_name": "ACH Payment Gateway",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 4100000,
+      "detection_delay_hours": 24,
+      "detection_delay_evidence": "Fraud engine tuned for card-not-present, not batch ACH anomalies — 0% path coverage, effective detection delay ≥ 24h",
+      "x": 740,
+      "y": 90
+    },
+    {
+      "id": "nacha-batch",
+      "name": "nacha-batch",
+      "plain_name": "ACH Batch File",
+      "type": "process",
+      "criticality": "high",
+      "x": 740,
+      "y": 260
+    },
+    {
+      "id": "partner-sftp",
+      "name": "partner-sftp",
+      "plain_name": "Partner File Transfer",
+      "type": "external",
+      "criticality": "medium",
+      "x": 70,
+      "y": 470
+    },
+    {
+      "id": "wire-gateway",
+      "name": "wire-gateway",
+      "plain_name": "Wire Payment Gateway",
+      "type": "financial",
+      "criticality": "critical",
+      "critical_function": true,
+      "exposed_capacity_24h_usd": 8000000,
+      "detection_delay_hours": 5,
+      "x": 300,
+      "y": 470
+    },
+    {
+      "id": "card-switch",
+      "name": "card-switch",
+      "plain_name": "Card Payment Switch",
+      "type": "financial",
+      "criticality": "high",
+      "critical_function": false,
+      "exposed_capacity_24h_usd": 1500000,
+      "detection_delay_hours": 8,
+      "x": 520,
+      "y": 470
+    },
+    {
+      "id": "ledger-db",
+      "name": "ledger-db",
+      "plain_name": "Core Ledger Database",
+      "type": "data",
+      "criticality": "critical",
+      "x": 960,
+      "y": 90
+    },
+    {
+      "id": "ci-runner",
+      "name": "ci-runner",
+      "plain_name": "Build Server",
+      "type": "build",
+      "criticality": "medium",
+      "x": 300,
+      "y": 630
+    },
+    {
+      "id": "fraud-engine",
+      "name": "fraud-engine",
+      "plain_name": "Fraud Detection Engine",
+      "type": "service",
+      "criticality": "medium",
+      "x": 740,
+      "y": 470
+    },
+    {
+      "id": "audit-log",
+      "name": "audit-log",
+      "plain_name": "Audit Log",
+      "type": "service",
+      "criticality": "medium",
+      "x": 960,
+      "y": 260
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "e1",
+      "source": "public-repo",
+      "destination": "corp-pay-key",
+      "permission": "secret_leak",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "A live corporate-payments API key was committed to a public GitHub repo by a partner integration. Attacker-side secret scanners flag it within minutes."
+    },
+    {
+      "edge_id": "e2",
+      "source": "corp-pay-key",
+      "destination": "payments-api",
+      "permission": "api_key_auth",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The leaked key authenticates to the Corporate Payments API. Long-lived static key, no MFA possible on a machine identity, no IP allow-list — a balance-read confirms it is live and privileged."
+    },
+    {
+      "edge_id": "e3",
+      "source": "payments-api",
+      "destination": "originator-profile",
+      "permission": "profile_read",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "The key can read the shared ACH originator profile, enumerating linked corporate accounts under the same originator ID."
+    },
+    {
+      "edge_id": "e4",
+      "source": "originator-profile",
+      "destination": "ach-gateway",
+      "permission": "ach_originate",
+      "allowed": true,
+      "control_multiplier": 1,
+      "evidence": "ach_originate scope was added for a 2025 migration and never revoked. The key can submit ACH origination batches it was never meant to touch."
+    },
+    {
+      "edge_id": "e5",
+      "source": "ach-gateway",
+      "destination": "nacha-batch",
+      "permission": "batch_submit",
+      "allowed": true,
+      "control_multiplier": 0.5,
+      "evidence": "Batches split across beneficiary accounts to stay under per-transaction review thresholds, staged as routine NACHA files."
+    },
+    {
+      "edge_id": "e6",
+      "source": "payments-api",
+      "destination": "card-switch",
+      "permission": "card_auth",
+      "allowed": false
+    },
+    {
+      "edge_id": "e7",
+      "source": "corp-pay-key",
+      "destination": "wire-gateway",
+      "permission": "wire_init",
+      "allowed": false
+    },
+    {
+      "edge_id": "e8",
+      "source": "partner-sftp",
+      "destination": "wire-gateway",
+      "permission": "file_drop",
+      "allowed": false
+    },
+    {
+      "edge_id": "e9",
+      "source": "ci-runner",
+      "destination": "wire-gateway",
+      "permission": "deploy",
+      "allowed": false
+    },
+    {
+      "edge_id": "e10",
+      "source": "ach-gateway",
+      "destination": "ledger-db",
+      "permission": "post_entry",
+      "allowed": true,
+      "control_multiplier": 0.6
+    },
+    {
+      "edge_id": "e11",
+      "source": "ach-gateway",
+      "destination": "audit-log",
+      "permission": "append_only",
+      "allowed": true,
+      "control_multiplier": 1
+    },
+    {
+      "edge_id": "e12",
+      "source": "card-switch",
+      "destination": "fraud-engine",
+      "permission": "rules_read",
+      "allowed": false
+    },
+    {
+      "edge_id": "e13",
+      "source": "originator-profile",
+      "destination": "card-switch",
+      "permission": "link_read",
+      "allowed": false
+    }
+  ],
+  "rules": {
+    "disruption": {
+      "critical": 48,
+      "high": 24,
+      "medium": 8
+    },
+    "threshold": 100000,
+    "rule_ids": {
+      "R-EXP-1": "exposure = exposed_capacity_24h_usd × detection_window_factor × control_multiplier",
+      "R-WIN-1": "detection_window_factor = min(detection_delay_hours / 24, 1)",
+      "R-BYP-1": "control_multiplier = best product of edge.control_multiplier over simple paths from entry",
+      "R-DIS-1": "disruption = max tier lookup over reached nodes; 1 critical financial system ⇒ critical tier; 2+ ⇒ multi_critical",
+      "R-CYB-1": "cyber_risk = HIGH if any critical node reached, MEDIUM if any high, else LOW",
+      "R-REG-1": "DORA (simulated): critical-function financial system reached via unauthorized access ⇒ MAJOR, else BELOW",
+      "R-UNK-1": "missing evidence ⇒ factor 1.0, complete=false, UI shows 'up to $X'"
+    }
+  },
+  "changes": [
+    {
+      "id": "revoke-ach-originate",
+      "label": "Revoke ach_originate from the key",
+      "op": "remove_edge",
+      "target": "e4",
+      "effort": 1,
+      "cuts": "the path",
+      "note": "Leftover scope from a 2025 migration. Removing it breaks the origination hop to the ACH gateway."
+    },
+    {
+      "id": "rotate-leaked-key",
+      "label": "Rotate key + short-lived IP-bound tokens",
+      "op": "remove_edge",
+      "target": "e1",
+      "effort": 2,
+      "cuts": "the path",
+      "note": "Kills the leaked entry credential, so the chain never starts."
+    },
+    {
+      "id": "scope-originator",
+      "label": "Scope originator profile to own accounts",
+      "op": "remove_edge",
+      "target": "e3",
+      "effort": 3,
+      "cuts": "the path",
+      "note": "Stops cross-account enumeration under the shared originator ID."
+    },
+    {
+      "id": "clear-evidence",
+      "label": "Evidence gap: ach-gateway detection delay unknown",
+      "op": "clear_evidence",
+      "target": "ach-gateway",
+      "field": "detection_delay_hours",
+      "effort": 0,
+      "cuts": "none",
+      "note": "What the verdict looks like when a factor has no evidence behind it (unknown ≠ safe)."
+    }
+  ]
+}

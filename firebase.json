@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": "backend/static",
+    "ignore": ["firebase.json", "**/.*"],
+    "rewrites": [
+      { "source": "/api/**", "run": { "serviceId": "fapi", "region": "us-central1" } },
+      { "source": "/healthz", "run": { "serviceId": "fapi", "region": "us-central1" } },
+      { "source": "**", "destination": "/index.html" }
+    ],
+    "headers": [
+      { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+    ]
+  }
+}

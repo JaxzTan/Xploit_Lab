@@ -1,0 +1,1597 @@
+{
+ "meridian": {
+  "scenario": {
+   "id": "meridian",
+   "meta": {
+    "name": "Meridian Bank",
+    "headline_lead": "A phished ClearPay key exposes ",
+    "headline_tail": " across the payments path at Meridian Bank",
+    "entity": "Meridian Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Critical payment service reached via unauthorized access",
+    "label": "meridian-bank · 13 nodes · 13 edges",
+    "entry_label": "clearpay-inbox",
+    "hops_word": "six",
+    "idle_h1": "What can a phished ClearPay vendor key move inside Meridian Bank?",
+    "idle_intro": "Meridian Bank’s synthetic environment",
+    "cyber_note": "Meridian payments-core (critical) is reachable",
+    "exp_note": "movable before detection · payments-core",
+    "mttd_phrase": "an 18-hour-plus detection window that this path never trips (0% coverage)"
+   },
+   "entry": "clearpay-inbox",
+   "nodes": [
+    {
+     "id": "clearpay-inbox",
+     "name": "clearpay-inbox",
+     "plain_name": "Vendor Email Inbox",
+     "type": "external",
+     "criticality": "medium",
+     "x": 70,
+     "y": 90,
+     "entry": true
+    },
+    {
+     "id": "clearpay-keyvault",
+     "name": "clearpay-keyvault",
+     "plain_name": "Vendor Key Vault",
+     "type": "external",
+     "criticality": "high",
+     "x": 70,
+     "y": 300
+    },
+    {
+     "id": "partner-sftp",
+     "name": "partner-sftp",
+     "plain_name": "Partner File Transfer",
+     "type": "external",
+     "criticality": "medium",
+     "x": 70,
+     "y": 470
+    },
+    {
+     "id": "vendor-int-gateway",
+     "name": "vendor-int-gateway",
+     "plain_name": "Vendor Integration Gateway",
+     "type": "identity",
+     "criticality": "high",
+     "x": 300,
+     "y": 200
+    },
+    {
+     "id": "hr-fileshare",
+     "name": "hr-fileshare",
+     "plain_name": "HR File Share",
+     "type": "data",
+     "criticality": "medium",
+     "x": 300,
+     "y": 380
+    },
+    {
+     "id": "meridian-idp",
+     "name": "meridian-idp",
+     "plain_name": "Identity Provider",
+     "type": "identity",
+     "criticality": "critical",
+     "x": 520,
+     "y": 380
+    },
+    {
+     "id": "treasury-approve",
+     "name": "treasury-approve",
+     "plain_name": "Treasury Approval Role",
+     "type": "identity",
+     "criticality": "critical",
+     "x": 520,
+     "y": 200
+    },
+    {
+     "id": "payments-core",
+     "name": "payments-core",
+     "plain_name": "Core Payment System",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 2400000,
+     "detection_delay_hours": 24,
+     "detection_delay_evidence": "SIEM tuned for creds/malware, not vendor→treasury movement — 0% path coverage, effective detection delay ≥ 24h",
+     "x": 740,
+     "y": 90
+    },
+    {
+     "id": "settlement-batch",
+     "name": "settlement-batch",
+     "plain_name": "Settlement Batch",
+     "type": "process",
+     "criticality": "high",
+     "x": 740,
+     "y": 260
+    },
+    {
+     "id": "refunds-api",
+     "name": "refunds-api",
+     "plain_name": "Refunds Service",
+     "type": "financial",
+     "criticality": "high",
+     "critical_function": false,
+     "exposed_capacity_24h_usd": 2000000,
+     "detection_delay_hours": 12,
+     "detection_delay_evidence": "Refund anomaly alert, 90-day median",
+     "x": 740,
+     "y": 420
+    },
+    {
+     "id": "treasury-ledger",
+     "name": "treasury-ledger",
+     "plain_name": "Treasury Ledger",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 5000000,
+     "detection_delay_hours": 6,
+     "x": 300,
+     "y": 560
+    },
+    {
+     "id": "swift-gateway",
+     "name": "swift-gateway",
+     "plain_name": "Wire Payment Gateway",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 10000000,
+     "detection_delay_hours": 4,
+     "x": 520,
+     "y": 560
+    },
+    {
+     "id": "core-ledger-db",
+     "name": "core-ledger-db",
+     "plain_name": "Core Ledger Database",
+     "type": "data",
+     "criticality": "critical",
+     "x": 960,
+     "y": 90
+    }
+   ],
+   "edges": [
+    {
+     "edge_id": "e1",
+     "source": "clearpay-inbox",
+     "destination": "clearpay-keyvault",
+     "permission": "credential_phish",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "Spear-phishing link harvests a ClearPay O365 credential in real time. No attachment, so email-gateway scanning never fires."
+    },
+    {
+     "edge_id": "e2",
+     "source": "clearpay-keyvault",
+     "destination": "vendor-int-gateway",
+     "permission": "api_key_auth",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The stolen credential opens ClearPay’s key vault (no MFA) and exports a live API key that authenticates to Meridian’s gateway — static key, no IP allow-list."
+    },
+    {
+     "edge_id": "e3",
+     "source": "vendor-int-gateway",
+     "destination": "hr-fileshare",
+     "permission": "file_write",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "Broad \"partner integration\" scope from onboarding, never narrowed to invoice-only, also carries write to the HR file-share. Over-provisioned."
+    },
+    {
+     "edge_id": "e4",
+     "source": "hr-fileshare",
+     "destination": "meridian-idp",
+     "permission": "cached_token",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "A cached OAuth session token, left in a config file after a prior migration, still has active federation trust to Meridian’s IdP."
+    },
+    {
+     "edge_id": "e5",
+     "source": "meridian-idp",
+     "destination": "treasury-approve",
+     "permission": "federate",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The token mints a session in the legacy \"Treasury-Approve\" group — created for a since-dissolved team, never cleaned up in the 2024 reorg."
+    },
+    {
+     "edge_id": "e6",
+     "source": "treasury-approve",
+     "destination": "payments-core",
+     "permission": "payment_write",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "Treasury-Approve carries a $2.4M / 24-hr payment authority. To payments-core this is a valid, trusted login — no exploit needed."
+    },
+    {
+     "edge_id": "e7",
+     "source": "payments-core",
+     "destination": "settlement-batch",
+     "permission": "batch_submit",
+     "allowed": true,
+     "control_multiplier": 0.4,
+     "evidence": "Transfer staged to match a routine weekly ClearPay settlement batch, evading manual review."
+    },
+    {
+     "edge_id": "e8",
+     "source": "vendor-int-gateway",
+     "destination": "refunds-api",
+     "permission": "refund_write",
+     "allowed": false
+    },
+    {
+     "edge_id": "e9",
+     "source": "treasury-approve",
+     "destination": "treasury-ledger",
+     "permission": "ledger_read",
+     "allowed": false
+    },
+    {
+     "edge_id": "e10",
+     "source": "partner-sftp",
+     "destination": "swift-gateway",
+     "permission": "file_drop",
+     "allowed": false
+    },
+    {
+     "edge_id": "e11",
+     "source": "payments-core",
+     "destination": "core-ledger-db",
+     "permission": "db_write",
+     "allowed": true,
+     "control_multiplier": 0.6
+    },
+    {
+     "edge_id": "e12",
+     "source": "meridian-idp",
+     "destination": "treasury-ledger",
+     "permission": "assume_role",
+     "allowed": false
+    },
+    {
+     "edge_id": "e13",
+     "source": "clearpay-keyvault",
+     "destination": "partner-sftp",
+     "permission": "sftp_read",
+     "allowed": false
+    }
+   ],
+   "rules": {
+    "disruption": {
+     "critical": 68,
+     "high": 24,
+     "medium": 8
+    },
+    "threshold": 100000
+   },
+   "changes": [
+    {
+     "id": "revoke-payment-write",
+     "label": "Revoke Treasury-Approve payment_write",
+     "op": "remove_edge",
+     "target": "e6",
+     "effort": 1,
+     "cuts": "the path",
+     "note": "A legacy role grant nobody uses. Removing it breaks the last hop to payments-core."
+    },
+    {
+     "id": "rotate-vendor-key",
+     "label": "Rotate ClearPay key + step-up MFA",
+     "op": "remove_edge",
+     "target": "e1",
+     "effort": 3,
+     "cuts": "the path",
+     "note": "Cuts the phished entry hop, so the whole chain never starts."
+    },
+    {
+     "id": "rescope-gateway",
+     "label": "Rescope vendor gateway to invoice-only",
+     "op": "remove_edge",
+     "target": "e3",
+     "effort": 2,
+     "cuts": "the path",
+     "note": "Removes the HR file-share write the integration never needed — the chain stalls mid-way."
+    },
+    {
+     "id": "clear-evidence",
+     "label": "Evidence gap: payments-core detection delay unknown",
+     "op": "clear_evidence",
+     "target": "payments-core",
+     "field": "detection_delay_hours",
+     "effort": 0,
+     "cuts": "none",
+     "note": "What the verdict looks like when a factor has no evidence behind it (unknown ≠ safe)."
+    }
+   ]
+  },
+  "ai": {
+   "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4",
+    "e5",
+    "e6"
+   ],
+   "on_path": [
+    "clearpay-inbox",
+    "clearpay-keyvault",
+    "vendor-int-gateway",
+    "hr-fileshare",
+    "meridian-idp",
+    "treasury-approve",
+    "payments-core"
+   ],
+   "techniques": {
+    "e1": "Spearphishing Link (T1566.002) — a cloned O365 page harvests a ClearPay credential",
+    "e2": "Valid Accounts: Cloud Accounts (T1078.004) — a static vendor API key replays into Meridian",
+    "e3": "Trusted Relationship (T1199) — over-scoped vendor gateway reaches the HR file-share",
+    "e4": "Steal/Forge Application Access Token (T1528 / T1550.001) — a cached federated token",
+    "e5": "Valid Accounts → Privilege Escalation (T1078.004) — session minted as Treasury-Approve",
+    "e6": "Financial Theft (T1657) — payment_write on the legacy Treasury-Approve role"
+   },
+   "hop_details": {
+    "e1": {
+     "title": "Spear-phishing link harvests a ClearPay credential",
+     "how": "The attacker sends a spear-phishing email with a link to a cloned Microsoft 365 login page spoofing ClearPay’s IT helpdesk domain. The victim enters live credentials, captured in real time by the phishing kit. No attachment or malware, so email-gateway attachment scanning never triggers.",
+     "leverage": "Those credentials are the only thing standing between the attacker and ClearPay’s key vault. Because the vault enforces no second factor, one harvested password is enough to reach and export a live vendor API key in the next hop.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1566.002",
+       "lbl": "Spearphishing Link — Initial Access (TA0001)"
+      }
+     ],
+     "determined": "This edge sits at the very start of the chain. It carries no dollar figure itself — no Meridian system is touched yet — but its control_multiplier of 1.0 records that nothing stopped it, which feeds the end-to-end path bypass the engine multiplies later."
+    },
+    "e2": {
+     "title": "Static vendor API key replays into Meridian",
+     "how": "The stolen credential opens ClearPay’s key-management portal (again, no MFA) and exports a live API key scoped to Meridian’s vendor integration gateway. The key authenticates cleanly — it is a valid machine identity with no IP allow-list, so the request is indistinguishable from normal vendor traffic.",
+     "leverage": "A long-lived static key means the attacker inherits a trusted machine identity without ever touching a Meridian employee account. There is no login anomaly to page on, because from Meridian’s side this is the vendor doing exactly what the vendor always does.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1078.004",
+       "lbl": "Valid Accounts: Cloud Accounts — Defense Evasion / Persistence"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API2:2023",
+       "lbl": "Broken Authentication"
+      }
+     ],
+     "determined": "The key’s granted scope — read from the IAM export, not the vendor’s stated need — is what sets the eventual blast radius. Bypass probability 1.0: a static key with no MFA is a control that is effectively absent."
+    },
+    "e3": {
+     "title": "Over-scoped gateway reaches the HR file-share",
+     "how": "The API key authenticates to the Vendor Integration Gateway. Its scope was provisioned broadly at onboarding for \"partner integration\" and never narrowed to the read-only invoice endpoints ClearPay actually uses — so it also carries write access to the HR file-share.",
+     "leverage": "The attacker uses the unneeded write scope to pivot off the vendor integration and into an internal system, turning a partner API into an internal foothold. This is the over-provisioning that converts a vendor incident into a Meridian incident.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1199",
+       "lbl": "Trusted Relationship — abusing third-party access"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API5:2023",
+       "lbl": "Broken Function Level Authorization"
+      },
+      {
+       "fw": "CWE",
+       "id": "CWE-269",
+       "lbl": "Improper Privilege Management"
+      }
+     ],
+     "determined": "This is the first hop the graph scores as a privilege boundary crossing. The engine reads the scope directly from config; the gap between what the key can reach and what it was meant to reach is exactly what \"over-provisioned\" means."
+    },
+    "e4": {
+     "title": "Cached federated token discovered",
+     "how": "Pivoting through the write-scoped HR file-share, the attacker finds a cached OAuth session token left in a config file by a legitimate service account — never rotated or deleted after a prior migration.",
+     "leverage": "The cached token still carries active federation trust to Meridian’s identity provider. Rather than crack anything, the attacker simply reuses valid authentication material to move toward the IdP — a credential-hygiene failure, not an exploit.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1528",
+       "lbl": "Steal Application Access Token"
+      },
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1550.001",
+       "lbl": "Use Alternate Authentication Material: Application Access Token"
+      }
+     ],
+     "determined": "The engine scores this as a distinct control-bypass factor — the leftover token — separate from the IAM scope issue on the previous hop, so the two failures are not double-counted."
+    },
+    "e5": {
+     "title": "Session minted as Treasury-Approve",
+     "how": "The cached token’s federation trust lets the attacker mint a full session at the IdP. That session inherits the legacy \"Treasury-Approve\" group — a role grouping created for a since-dissolved team and never cleaned up in the 2024 reorg.",
+     "leverage": "Privilege escalation happens without a single failed-login alert: the attacker never guesses a password, they inherit an over-broad role that already exists. The session now holds payment authority it was never meant to have.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1078.004",
+       "lbl": "Valid Accounts: Cloud Accounts — Privilege Escalation (TA0004)"
+      },
+      {
+       "fw": "OWASP Top 10 (2021)",
+       "id": "A01:2021",
+       "lbl": "Broken Access Control"
+      },
+      {
+       "fw": "CWE",
+       "id": "CWE-269",
+       "lbl": "Improper Privilege Management"
+      }
+     ],
+     "determined": "This hop sets the financial ceiling. The engine looks up every role the session inherits and takes the highest transaction authority among them — Treasury-Approve is what turns a data-access incident into a payments incident."
+    },
+    "e6": {
+     "title": "payment_write on the legacy Treasury-Approve role",
+     "how": "With Treasury-Approve privileges the session authenticates directly to the Core Payment System. No further exploitation is needed — to payments-core this is a valid, trusted login carrying a $2.4M / 24-hour transaction ceiling.",
+     "leverage": "The attacker stages transfers to match the metadata of a routine weekly ClearPay settlement batch, keeping them below manual-review thresholds. SIEM coverage on this vendor→treasury path is 0%, so the transfers accrue with nothing to page the SOC.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1657",
+       "lbl": "Financial Theft"
+      },
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "TA0040",
+       "lbl": "Impact (tactic)"
+      }
+     ],
+     "determined": "This is the hop that locks in the number: exposed_capacity_24h $2.4M (read from the gateway config) × detection_window_factor 1.0 (0% path coverage) × control_multiplier 1.0 = $2,400,000. A configured limit, not a probability estimate."
+    }
+   },
+   "phases": [
+    {
+     "phase": "Initial access",
+     "tactic": "TA0001",
+     "start": 0,
+     "end": 0.5,
+     "edge": "e1",
+     "detail": "A phished ClearPay employee hands over an O365 credential, which opens the vendor key vault and exports a live API key. It replays into Meridian’s gateway — no MFA, no IP allow-list — and looks identical to normal vendor traffic."
+    },
+    {
+     "phase": "Discovery",
+     "tactic": "TA0007",
+     "start": 0.5,
+     "end": 1.5,
+     "edge": "e3",
+     "detail": "The over-scoped gateway key carries write to the HR file-share. Pivoting through it, the attacker finds a cached federated token left in a config file after a prior migration."
+    },
+    {
+     "phase": "Privilege escalation",
+     "tactic": "TA0004",
+     "start": 1.5,
+     "end": 2.5,
+     "edge": "e5",
+     "detail": "The cached token mints a session in the legacy Treasury-Approve group — a role grouping never cleaned up in the 2024 reorg. No failed-login alert ever fires."
+    },
+    {
+     "phase": "Impact — payments",
+     "tactic": "TA0040",
+     "start": 2.5,
+     "end": 24,
+     "edge": "e6",
+     "branch_exposure": 2400000,
+     "detail": "Treasury-Approve carries a $2.4M / 24-hr ceiling. Transfers are staged as routine ClearPay settlement batches; SIEM coverage on this vendor→treasury path is 0%, so nothing pages the SOC."
+    }
+   ],
+   "reasoning": [
+    {
+     "title": "Identify the entry point",
+     "verdict": "accepted",
+     "thought": "clearpay-inbox is the only external node with an allowed outbound edge (e1). partner-sftp is external but every edge on it is denied — a red herring.",
+     "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+     "title": "Name the first technique",
+     "verdict": "accepted",
+     "thought": "A phished credential replaying a static api_key_auth on a machine identity with no second factor is T1078.004 (Valid Accounts: Cloud). Bypass probability 1.0 in config agrees — the control is effectively absent.",
+     "check": "Validator: technique matches edge.permission semantics."
+    },
+    {
+     "title": "Walk the chain to a financial node",
+     "verdict": "accepted",
+     "thought": "From vendor-int-gateway: e3 (HR file-share) → e4 (cached token → IdP) → e5 (Treasury-Approve) → e6 (payments-core). e8 (refunds) and e9 (treasury-ledger) are denied, so the path is a single line to payments-core.",
+     "check": "BFS cross-check: payments-core ∈ reachable; refunds-api, treasury-ledger ∉."
+    },
+    {
+     "title": "Read the detection delays",
+     "verdict": "deferred",
+     "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+     "check": "Supplied by bank configuration: detection_delay_hours read from bank.json. The model never estimates them."
+    },
+    {
+     "title": "Quantify exposure",
+     "verdict": "deferred",
+     "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+     "check": "Computed by the deterministic engine: exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+     "title": "Consider lateral extension",
+     "verdict": "rejected",
+     "thought": "From payments-core, e11 gives db_write on core-ledger-db, which could allow ledger tampering to hide the transfers.",
+     "check": "Out of scope: core-ledger-db carries no exposed_capacity_24h_usd, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+   ],
+   "ai_estimate": {
+    "low": 2400000,
+    "high": 3100000
+   },
+   "narrative_template": "A phished ClearPay credential reaches Meridian’s payment estate in {hops} hops without breaking a single control — from a vendor inbox through an over-scoped gateway and a legacy Treasury-Approve role to payments-core. Against {mttd} on that path, an attacker can move up to {exposure} before anyone is paged, and hold {disruption} hours of critical payment processing at risk. Revoking the one permission nobody uses removes {avoided} of that exposure for about an hour of work.",
+   "hops_word": "six",
+   "mttd_phrase": "an 18-hour-plus detection window that this path never trips (0% coverage)"
+  }
+ },
+ "hydra": {
+  "scenario": {
+   "id": "hydra",
+   "meta": {
+    "name": "Hydra Bank",
+    "headline_lead": "A leaked API key exposes ",
+    "headline_tail": " across the ACH path at Hydra Bank",
+    "entity": "Hydra Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Critical payment service reached via unauthorized access",
+    "label": "hydra-bank · 13 nodes · 13 edges",
+    "entry_label": "public-repo",
+    "hops_word": "four",
+    "idle_h1": "What can a leaked payments API key move inside Hydra Bank?",
+    "idle_intro": "Hydra Bank’s synthetic environment",
+    "cyber_note": "Hydra ach-gateway (critical) is reachable",
+    "exp_note": "movable before detection · ach-gateway",
+    "mttd_phrase": "a detection window this path never trips (0% ACH coverage)"
+   },
+   "entry": "public-repo",
+   "nodes": [
+    {
+     "id": "public-repo",
+     "name": "public-repo",
+     "plain_name": "Public Code Repository",
+     "type": "external",
+     "criticality": "medium",
+     "x": 70,
+     "y": 90,
+     "entry": true
+    },
+    {
+     "id": "corp-pay-key",
+     "name": "corp-pay-key",
+     "plain_name": "Corporate Payments Key",
+     "type": "identity",
+     "criticality": "high",
+     "x": 300,
+     "y": 90
+    },
+    {
+     "id": "payments-api",
+     "name": "payments-api",
+     "plain_name": "Corporate Payments API",
+     "type": "identity",
+     "criticality": "high",
+     "x": 520,
+     "y": 90
+    },
+    {
+     "id": "originator-profile",
+     "name": "originator-profile",
+     "plain_name": "Shared Originator Profile",
+     "type": "data",
+     "criticality": "high",
+     "x": 520,
+     "y": 260
+    },
+    {
+     "id": "ach-gateway",
+     "name": "ach-gateway",
+     "plain_name": "ACH Payment Gateway",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 4100000,
+     "detection_delay_hours": 24,
+     "detection_delay_evidence": "Fraud engine tuned for card-not-present, not batch ACH anomalies — 0% path coverage, effective detection delay ≥ 24h",
+     "x": 740,
+     "y": 90
+    },
+    {
+     "id": "nacha-batch",
+     "name": "nacha-batch",
+     "plain_name": "ACH Batch File",
+     "type": "process",
+     "criticality": "high",
+     "x": 740,
+     "y": 260
+    },
+    {
+     "id": "partner-sftp",
+     "name": "partner-sftp",
+     "plain_name": "Partner File Transfer",
+     "type": "external",
+     "criticality": "medium",
+     "x": 70,
+     "y": 470
+    },
+    {
+     "id": "wire-gateway",
+     "name": "wire-gateway",
+     "plain_name": "Wire Payment Gateway",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 8000000,
+     "detection_delay_hours": 5,
+     "x": 300,
+     "y": 470
+    },
+    {
+     "id": "card-switch",
+     "name": "card-switch",
+     "plain_name": "Card Payment Switch",
+     "type": "financial",
+     "criticality": "high",
+     "critical_function": false,
+     "exposed_capacity_24h_usd": 1500000,
+     "detection_delay_hours": 8,
+     "x": 520,
+     "y": 470
+    },
+    {
+     "id": "ledger-db",
+     "name": "ledger-db",
+     "plain_name": "Core Ledger Database",
+     "type": "data",
+     "criticality": "critical",
+     "x": 960,
+     "y": 90
+    },
+    {
+     "id": "ci-runner",
+     "name": "ci-runner",
+     "plain_name": "Build Server",
+     "type": "build",
+     "criticality": "medium",
+     "x": 300,
+     "y": 630
+    },
+    {
+     "id": "fraud-engine",
+     "name": "fraud-engine",
+     "plain_name": "Fraud Detection Engine",
+     "type": "service",
+     "criticality": "medium",
+     "x": 740,
+     "y": 470
+    },
+    {
+     "id": "audit-log",
+     "name": "audit-log",
+     "plain_name": "Audit Log",
+     "type": "service",
+     "criticality": "medium",
+     "x": 960,
+     "y": 260
+    }
+   ],
+   "edges": [
+    {
+     "edge_id": "e1",
+     "source": "public-repo",
+     "destination": "corp-pay-key",
+     "permission": "secret_leak",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "A live corporate-payments API key was committed to a public GitHub repo by a partner integration. Attacker-side secret scanners flag it within minutes."
+    },
+    {
+     "edge_id": "e2",
+     "source": "corp-pay-key",
+     "destination": "payments-api",
+     "permission": "api_key_auth",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The leaked key authenticates to the Corporate Payments API. Long-lived static key, no MFA possible on a machine identity, no IP allow-list — a balance-read confirms it is live and privileged."
+    },
+    {
+     "edge_id": "e3",
+     "source": "payments-api",
+     "destination": "originator-profile",
+     "permission": "profile_read",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The key can read the shared ACH originator profile, enumerating linked corporate accounts under the same originator ID."
+    },
+    {
+     "edge_id": "e4",
+     "source": "originator-profile",
+     "destination": "ach-gateway",
+     "permission": "ach_originate",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "ach_originate scope was added for a 2025 migration and never revoked. The key can submit ACH origination batches it was never meant to touch."
+    },
+    {
+     "edge_id": "e5",
+     "source": "ach-gateway",
+     "destination": "nacha-batch",
+     "permission": "batch_submit",
+     "allowed": true,
+     "control_multiplier": 0.5,
+     "evidence": "Batches split across beneficiary accounts to stay under per-transaction review thresholds, staged as routine NACHA files."
+    },
+    {
+     "edge_id": "e6",
+     "source": "payments-api",
+     "destination": "card-switch",
+     "permission": "card_auth",
+     "allowed": false
+    },
+    {
+     "edge_id": "e7",
+     "source": "corp-pay-key",
+     "destination": "wire-gateway",
+     "permission": "wire_init",
+     "allowed": false
+    },
+    {
+     "edge_id": "e8",
+     "source": "partner-sftp",
+     "destination": "wire-gateway",
+     "permission": "file_drop",
+     "allowed": false
+    },
+    {
+     "edge_id": "e9",
+     "source": "ci-runner",
+     "destination": "wire-gateway",
+     "permission": "deploy",
+     "allowed": false
+    },
+    {
+     "edge_id": "e10",
+     "source": "ach-gateway",
+     "destination": "ledger-db",
+     "permission": "post_entry",
+     "allowed": true,
+     "control_multiplier": 0.6
+    },
+    {
+     "edge_id": "e11",
+     "source": "ach-gateway",
+     "destination": "audit-log",
+     "permission": "append_only",
+     "allowed": true,
+     "control_multiplier": 1
+    },
+    {
+     "edge_id": "e12",
+     "source": "card-switch",
+     "destination": "fraud-engine",
+     "permission": "rules_read",
+     "allowed": false
+    },
+    {
+     "edge_id": "e13",
+     "source": "originator-profile",
+     "destination": "card-switch",
+     "permission": "link_read",
+     "allowed": false
+    }
+   ],
+   "rules": {
+    "disruption": {
+     "critical": 48,
+     "high": 24,
+     "medium": 8
+    },
+    "threshold": 100000
+   },
+   "changes": [
+    {
+     "id": "revoke-ach-originate",
+     "label": "Revoke ach_originate from the key",
+     "op": "remove_edge",
+     "target": "e4",
+     "effort": 1,
+     "cuts": "the path",
+     "note": "Leftover scope from a 2025 migration. Removing it breaks the origination hop to the ACH gateway."
+    },
+    {
+     "id": "rotate-leaked-key",
+     "label": "Rotate key + short-lived IP-bound tokens",
+     "op": "remove_edge",
+     "target": "e1",
+     "effort": 2,
+     "cuts": "the path",
+     "note": "Kills the leaked entry credential, so the chain never starts."
+    },
+    {
+     "id": "scope-originator",
+     "label": "Scope originator profile to own accounts",
+     "op": "remove_edge",
+     "target": "e3",
+     "effort": 3,
+     "cuts": "the path",
+     "note": "Stops cross-account enumeration under the shared originator ID."
+    },
+    {
+     "id": "clear-evidence",
+     "label": "Evidence gap: ach-gateway detection delay unknown",
+     "op": "clear_evidence",
+     "target": "ach-gateway",
+     "field": "detection_delay_hours",
+     "effort": 0,
+     "cuts": "none",
+     "note": "What the verdict looks like when a factor has no evidence behind it (unknown ≠ safe)."
+    }
+   ]
+  },
+  "ai": {
+   "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4"
+   ],
+   "on_path": [
+    "public-repo",
+    "corp-pay-key",
+    "payments-api",
+    "originator-profile",
+    "ach-gateway"
+   ],
+   "techniques": {
+    "e1": "Unsecured Credentials: Credentials in Files (T1552.001) — a payments key committed to a public repo",
+    "e2": "Valid Accounts: Cloud Accounts (T1078.004) — a leaked static key authenticates to the payments API",
+    "e3": "Account Discovery (T1087) — enumerate accounts under the shared ACH originator profile",
+    "e4": "Financial Theft via over-scoped token (T1657) — leftover ach_originate on the machine identity",
+    "e5": "Impact: staged NACHA batches (TA0040) — split below per-transaction review thresholds"
+   },
+   "hop_details": {
+    "e1": {
+     "title": "Payments API key committed to a public repo",
+     "how": "A partner integration commits a live corporate-payments API key into a public GitHub repository. Automated secret scanners — the same ones defenders run — surface it within minutes of the push, and so does the attacker.",
+     "leverage": "The attacker never has to breach a perimeter: the credential is already outside it. A single balance-read call confirms the key is live and privileged, giving a trusted foothold with no login anomaly to detect.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1552.001",
+       "lbl": "Unsecured Credentials: Credentials in Files"
+      },
+      {
+       "fw": "CWE",
+       "id": "CWE-798",
+       "lbl": "Use of Hard-coded Credentials"
+      }
+     ],
+     "determined": "This edge starts the chain with control_multiplier 1.0 — a leaked static key has no second factor to stop it. It carries no dollar figure itself; it feeds the end-to-end path bypass the engine multiplies later."
+    },
+    "e2": {
+     "title": "Leaked static key authenticates to the payments API",
+     "how": "The key authenticates to the Corporate Payments API. It is a long-lived machine identity: no MFA is possible, and no IP allow-list constrains where it can be used from, so the request looks identical to legitimate partner traffic.",
+     "leverage": "By reusing a valid machine identity, the attacker acts as the partner integration itself. There is no user account to lock, no password to reset — the key is the identity, and it is already trusted.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1078.004",
+       "lbl": "Valid Accounts: Cloud Accounts"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API2:2023",
+       "lbl": "Broken Authentication"
+      }
+     ],
+     "determined": "The key’s granted scope — read from the IAM export, not the partner’s stated need — sets the eventual blast radius. Bypass probability 1.0: the authentication control is effectively absent."
+    },
+    "e3": {
+     "title": "Enumerate accounts under the shared originator profile",
+     "how": "The key reads the shared ACH originator profile and lists every corporate account grouped under the same originator ID — a mapping of where funds can legitimately be pushed from this identity.",
+     "leverage": "Shared originator profiles let one compromised key see and act across many accounts. The attacker uses this to pick beneficiary structures that spread the fraud thin enough to stay under per-transaction review.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1087",
+       "lbl": "Account Discovery"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API1:2023",
+       "lbl": "Broken Object Level Authorization"
+      }
+     ],
+     "determined": "This hop widens reachability but sets no ceiling on its own. The engine records it as a discovery step that makes the origination hop’s full limit realistically usable."
+    },
+    "e4": {
+     "title": "Leftover ach_originate scope on the machine identity",
+     "how": "The key still carries an ach_originate scope, granted for a 2025 migration and never revoked. With it, the identity submits ACH origination batches directly to the ACH gateway — no escalation needed.",
+     "leverage": "This is the over-provisioning that turns a read-only-looking partner key into a money-movement capability. The attacker submits origination batches the integration was never designed to touch.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1657",
+       "lbl": "Financial Theft"
+      },
+      {
+       "fw": "CWE",
+       "id": "CWE-269",
+       "lbl": "Improper Privilege Management"
+      }
+     ],
+     "determined": "This hop locks in the number: exposed_capacity_24h $4.1M (the ACH gateway’s configured same-day origination ceiling) × detection_window_factor 1.0 (0% path coverage) × control_multiplier 1.0 = $4,100,000. A configured limit, not a probability estimate."
+    },
+    "e5": {
+     "title": "Batches staged as routine NACHA files",
+     "how": "Origination is split across multiple beneficiary accounts and formatted to match routine NACHA batch metadata, keeping each entry below the per-transaction review threshold.",
+     "leverage": "By shaping the fraud to look like normal batch activity, the attacker avoids the manual-review queue entirely. The fraud engine is tuned for card-not-present patterns, so batch ACH anomalies never trip it.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "TA0040",
+       "lbl": "Impact (tactic)"
+      },
+      {
+       "fw": "CIS Controls v8",
+       "id": "Control 8",
+       "lbl": "Audit Log Management — the coverage gap exploited"
+      }
+     ],
+     "determined": "A defender gap, not a new privilege: it drives the 0% detection coverage on this path, which is why detection_window_factor stays at its 1.0 ceiling rather than trimming the exposure."
+    }
+   },
+   "phases": [
+    {
+     "phase": "Initial access",
+     "tactic": "TA0001",
+     "start": 0,
+     "end": 0.5,
+     "edge": "e1",
+     "detail": "A live corporate-payments API key is committed to a public GitHub repo by a partner integration. Attacker-side secret scanners flag it within minutes; a balance-read confirms the key is live and privileged."
+    },
+    {
+     "phase": "Discovery",
+     "tactic": "TA0007",
+     "start": 0.5,
+     "end": 1.5,
+     "edge": "e3",
+     "detail": "The key reads the shared ACH originator profile and enumerates the linked corporate accounts under the same originator ID — mapping where money can be pushed."
+    },
+    {
+     "phase": "Privilege abuse",
+     "tactic": "TA0004",
+     "start": 1.5,
+     "end": 2,
+     "edge": "e4",
+     "detail": "A leftover ach_originate scope, added for a 2025 migration and never revoked, lets the machine identity submit ACH origination batches directly."
+    },
+    {
+     "phase": "Impact — ACH",
+     "tactic": "TA0040",
+     "start": 2,
+     "end": 24,
+     "edge": "e4",
+     "branch_exposure": 4100000,
+     "detail": "Origination batches are split across beneficiary accounts to stay under per-transaction review thresholds. The fraud engine is tuned for card-not-present, not batch ACH — 0% coverage on this path, so nothing pages the SOC."
+    }
+   ],
+   "reasoning": [
+    {
+     "title": "Identify the entry point",
+     "verdict": "accepted",
+     "thought": "public-repo is the only external node with an allowed outbound edge (e1) — a leaked secret. partner-sftp is external but every edge on it is denied.",
+     "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+     "title": "Name the first technique",
+     "verdict": "accepted",
+     "thought": "A live key in a public commit is T1552.001 (Credentials in Files); replaying it is T1078.004 (Valid Accounts: Cloud). Bypass probability 1.0 in config agrees — a static key has no second factor to stop it.",
+     "check": "Validator: technique matches edge.permission semantics."
+    },
+    {
+     "title": "Walk the chain to a financial node",
+     "verdict": "accepted",
+     "thought": "From payments-api: e3 (originator-profile) → e4 (ach-gateway). e6 (card-switch) and e7 (wire-gateway) are denied, so the path is a single line to ach-gateway.",
+     "check": "BFS cross-check: ach-gateway ∈ reachable; card-switch, wire-gateway ∉."
+    },
+    {
+     "title": "Read the detection delays",
+     "verdict": "deferred",
+     "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+     "check": "Supplied by bank configuration: detection_delay_hours read from bank.json. The model never estimates them."
+    },
+    {
+     "title": "Quantify exposure",
+     "verdict": "deferred",
+     "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+     "check": "Computed by the deterministic engine: exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+     "title": "Consider lateral extension",
+     "verdict": "rejected",
+     "thought": "From ach-gateway, e10 gives post_entry on ledger-db, which could allow ledger tampering to hide the batches.",
+     "check": "Out of scope: ledger-db carries no exposed_capacity_24h_usd, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+   ],
+   "ai_estimate": {
+    "low": 4000000,
+    "high": 5000000
+   },
+   "narrative_template": "A payments API key leaked to a public repo reaches Hydra Bank’s ACH estate in {hops} hops without breaking a single control — from a public commit through the payments API and a shared originator profile to the ACH gateway. Against {mttd} on that path, an attacker can move up to {exposure} before anyone is paged, and hold {disruption} hours of critical payment processing at risk. Revoking the one scope nobody uses removes {avoided} of that exposure for about an hour of work.",
+   "hops_word": "four",
+   "mttd_phrase": "a detection window this path never trips (0% ACH coverage)"
+  }
+ },
+ "lion": {
+  "scenario": {
+   "id": "lion",
+   "meta": {
+    "name": "Lion Bank",
+    "headline_lead": "One compromised edge session exposes ",
+    "headline_tail": " across two financial systems at Lion Bank",
+    "label": "lion-bank · 13 nodes · 13 edges",
+    "entry_label": "edge-netscaler",
+    "hops_word": "six",
+    "idle_h1": "What can one compromised edge session move inside Lion Bank?",
+    "idle_intro": "Lion Bank’s synthetic environment",
+    "cyber_note": "swift-connector + card-issuing-api (two branches) reachable",
+    "exp_note": "modeled exposure · wire + card branches",
+    "mttd_phrase": "detection delays of 6h (wire) and 18h (card) that this attack outruns",
+    "stackable": true,
+    "entity": "Lion Bank — an EU/EEA-authorised credit institution (in scope for DORA)",
+    "reg_primary": "DORA: Major ICT-related incident — simulated rule match",
+    "reg_secondary": "Payment-card obligations: potentially applicable",
+    "recovery_policy": "96h — synthetic multi-system recovery-policy lookup (cross-border wire recall + card reissuance), Lion BCP-12"
+   },
+   "entry": "edge-vpn",
+   "nodes": [
+    {
+     "id": "edge-vpn",
+     "name": "edge-netscaler",
+     "plain_name": "Remote Access Gateway",
+     "type": "external",
+     "criticality": "high",
+     "x": 70,
+     "y": 240,
+     "entry": true
+    },
+    {
+     "id": "stolen-session",
+     "name": "stolen-session",
+     "plain_name": "Hijacked Employee Session",
+     "type": "identity",
+     "criticality": "high",
+     "x": 280,
+     "y": 240
+    },
+    {
+     "id": "jump-host",
+     "name": "jump-host",
+     "plain_name": "Internal Admin Server",
+     "type": "process",
+     "criticality": "high",
+     "x": 490,
+     "y": 240
+    },
+    {
+     "id": "iam-role-broker",
+     "name": "iam-role-broker",
+     "plain_name": "Payment Access Role",
+     "type": "identity",
+     "criticality": "critical",
+     "x": 700,
+     "y": 110
+    },
+    {
+     "id": "automation-svc",
+     "name": "automation-svc",
+     "plain_name": "Card Automation Account",
+     "type": "identity",
+     "criticality": "high",
+     "x": 700,
+     "y": 380
+    },
+    {
+     "id": "swift-connector",
+     "name": "swift-connector",
+     "plain_name": "High-Value Wire Payment Interface",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 6680000,
+     "detection_delay_hours": 6,
+     "detection_delay_evidence": "SWIFT payment-anomaly rule, detection_delay_hours 6 (config, 90-day median)",
+     "x": 910,
+     "y": 110
+    },
+    {
+     "id": "card-issuing-api",
+     "name": "card-issuing-api",
+     "plain_name": "Virtual Card Issuing System",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 5000000,
+     "detection_delay_hours": 18,
+     "detection_delay_evidence": "Card-issuance velocity monitor, detection_delay_hours 18 (config, 90-day median)",
+     "x": 910,
+     "y": 380
+    },
+    {
+     "id": "core-ledger",
+     "name": "core-ledger",
+     "plain_name": "Core Banking Ledger",
+     "type": "financial",
+     "criticality": "critical",
+     "critical_function": true,
+     "exposed_capacity_24h_usd": 20000000,
+     "detection_delay_hours": 3,
+     "x": 490,
+     "y": 470
+    },
+    {
+     "id": "monitoring-gap",
+     "name": "monitoring-gap",
+     "plain_name": "Monitoring Gap",
+     "type": "service",
+     "criticality": "medium",
+     "x": 700,
+     "y": 560
+    },
+    {
+     "id": "partner-api",
+     "name": "partner-api",
+     "plain_name": "External Partner Connection",
+     "type": "external",
+     "criticality": "medium",
+     "x": 70,
+     "y": 470
+    },
+    {
+     "id": "backup-vault",
+     "name": "backup-vault",
+     "plain_name": "Protected Backup Storage",
+     "type": "data",
+     "criticality": "critical",
+     "x": 1120,
+     "y": 110
+    },
+    {
+     "id": "card-ledger-db",
+     "name": "card-ledger-db",
+     "plain_name": "Card Records Database",
+     "type": "data",
+     "criticality": "high",
+     "x": 1120,
+     "y": 380
+    },
+    {
+     "id": "audit-log",
+     "name": "audit-log",
+     "plain_name": "Audit Log",
+     "type": "service",
+     "criticality": "medium",
+     "x": 1120,
+     "y": 560
+    }
+   ],
+   "edges": [
+    {
+     "edge_id": "e1",
+     "source": "edge-vpn",
+     "destination": "stolen-session",
+     "permission": "session_token_leak",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "CVE-2023-4966 (Citrix Bleed): an out-of-bounds read on the NetScaler appliance leaks a valid session token from a legitimate user, replayable without credentials or MFA."
+    },
+    {
+     "edge_id": "e2",
+     "source": "stolen-session",
+     "destination": "jump-host",
+     "permission": "session_replay",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The leaked web session cookie is replayed to reach an internal jump host in the DMZ. The session is already authenticated, so no MFA challenge is presented."
+    },
+    {
+     "edge_id": "e3",
+     "source": "jump-host",
+     "destination": "iam-role-broker",
+     "permission": "assume_role",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "From the jump host the attacker assumes an over-privileged IAM broker role that fronts payment services — a standing role with wire-origination rights it should not hold."
+    },
+    {
+     "edge_id": "e4",
+     "source": "iam-role-broker",
+     "destination": "swift-connector",
+     "permission": "wire_originate",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The broker role can originate wires through the SWIFT connector with no second approver enforced on this corridor."
+    },
+    {
+     "edge_id": "e5",
+     "source": "jump-host",
+     "destination": "automation-svc",
+     "permission": "token_reuse",
+     "allowed": true,
+     "control_multiplier": 1,
+     "evidence": "The jump host also holds a reusable token for the card-automation service account — a second, independent route off the same foothold."
+    },
+    {
+     "edge_id": "e6",
+     "source": "automation-svc",
+     "destination": "card-issuing-api",
+     "permission": "card_issue",
+     "allowed": true,
+     "control_multiplier": 0.8,
+     "evidence": "The automation account can drive bulk virtual-card issuance. A velocity check trims part of the volume (path_control_multiplier 0.80) but does not stop the flow."
+    },
+    {
+     "edge_id": "e7",
+     "source": "jump-host",
+     "destination": "core-ledger",
+     "permission": "ledger_write",
+     "allowed": false
+    },
+    {
+     "edge_id": "e8",
+     "source": "automation-svc",
+     "destination": "core-ledger",
+     "permission": "ledger_write",
+     "allowed": false
+    },
+    {
+     "edge_id": "e9",
+     "source": "edge-vpn",
+     "destination": "partner-api",
+     "permission": "proxy",
+     "allowed": false
+    },
+    {
+     "edge_id": "e10",
+     "source": "swift-connector",
+     "destination": "backup-vault",
+     "permission": "archive_read",
+     "allowed": true,
+     "control_multiplier": 0.5
+    },
+    {
+     "edge_id": "e11",
+     "source": "card-issuing-api",
+     "destination": "card-ledger-db",
+     "permission": "db_write",
+     "allowed": true,
+     "control_multiplier": 0.6
+    },
+    {
+     "edge_id": "e12",
+     "source": "automation-svc",
+     "destination": "monitoring-gap",
+     "permission": "run_unmonitored",
+     "allowed": true,
+     "control_multiplier": 1
+    },
+    {
+     "edge_id": "e13",
+     "source": "card-issuing-api",
+     "destination": "audit-log",
+     "permission": "append_only",
+     "allowed": true,
+     "control_multiplier": 1
+    }
+   ],
+   "rules": {
+    "disruption": {
+     "multi_critical": 96,
+     "critical": 72,
+     "high": 24,
+     "medium": 8
+    }
+   },
+   "changes": [
+    {
+     "id": "patch-citrix",
+     "label": "Emergency NetScaler remediation: patch + invalidate sessions",
+     "op": "remove_edge",
+     "target": "e1",
+     "effort": 4,
+     "cuts": "both",
+     "note": "Patch CVE-2023-4966 AND terminate active/persistent sessions (per NetScaler guidance). Patching alone would not revoke the already-stolen session — invalidation is what actually closes the shared entry. Both branches fall."
+    },
+    {
+     "id": "revoke-card-scope",
+     "label": "Revoke automation card-issuing scope",
+     "op": "remove_edge",
+     "target": "e6",
+     "effort": 1,
+     "cuts": "card branch",
+     "note": "Branch-level: removes bulk card issuance from the automation account. Cheap and fast, but the wire branch remains."
+    },
+    {
+     "id": "swift-dual-approval",
+     "label": "Enforce SWIFT dual-approval",
+     "op": "remove_edge",
+     "target": "e4",
+     "effort": 2,
+     "cuts": "wire branch",
+     "note": "Branch-level: a mandatory second approver breaks single-actor wire origination. Leaves the card branch open."
+    },
+    {
+     "id": "segment-jump-host",
+     "label": "Segment the jump host",
+     "op": "remove_edge",
+     "target": "e2",
+     "effort": 8,
+     "cuts": "both",
+     "note": "Network control at the shared choke point. Closes both branches, but the segmentation project is the highest-effort option and may disrupt legitimate flows."
+    },
+    {
+     "id": "clear-evidence",
+     "label": "Evidence gap: card detection delay unknown",
+     "op": "clear_evidence",
+     "target": "card-issuing-api",
+     "field": "detection_delay_hours",
+     "effort": 0,
+     "cuts": "none",
+     "note": "Unknown ≠ safe: with no detection_delay evidence, the engine holds the card branch at its full ceiling and marks the verdict incomplete."
+    }
+   ]
+  },
+  "ai": {
+   "path_edge_ids": [
+    "e1",
+    "e2",
+    "e3",
+    "e4",
+    "e5",
+    "e6"
+   ],
+   "on_path": [
+    "edge-vpn",
+    "stolen-session",
+    "jump-host",
+    "iam-role-broker",
+    "swift-connector",
+    "automation-svc",
+    "card-issuing-api"
+   ],
+   "techniques": {
+    "e1": "Exploit Public-Facing Application (T1190) + Steal Web Session Cookie (T1539) — CVE-2023-4966, Citrix Bleed",
+    "e2": "Use Alternate Authentication Material: Web Session Cookie (T1550.004) — replayed to bypass MFA",
+    "e3": "Valid Accounts: Cloud Accounts (T1078.004) — assume an over-privileged IAM broker role",
+    "e4": "Financial Theft (T1657) — wire origination through the SWIFT connector",
+    "e5": "Use Alternate Authentication Material: Application Access Token (T1550.001) — reuse of a stolen automation-service token",
+    "e6": "Financial Theft (T1657) — uncontrolled bulk virtual-card issuance"
+   },
+   "hop_details": {
+    "e1": {
+     "title": "Citrix Bleed session-token leak (CVE-2023-4966)",
+     "how": "Lion Bank’s internet-facing NetScaler ADC/Gateway is unpatched against CVE-2023-4966 (Citrix Bleed). A crafted request triggers an out-of-bounds read that returns memory contents, including a valid session token belonging to a legitimate authenticated user.",
+     "leverage": "The attacker replays that token to inherit an already-authenticated session — no password, and critically no MFA prompt, because the session predates the second factor. A real, widely-exploited 2023 vulnerability, not a hypothetical.",
+     "refs": [
+      {
+       "fw": "CVE",
+       "id": "CVE-2023-4966",
+       "lbl": "Citrix NetScaler ADC/Gateway — sensitive information disclosure (Citrix Bleed)"
+      },
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1190",
+       "lbl": "Exploit Public-Facing Application (Initial Access)"
+      },
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1539",
+       "lbl": "Steal Web Session Cookie"
+      }
+     ],
+     "determined": "This edge starts the chain with a path_control_multiplier of 1.00 — an unpatched, exploitable appliance offers no control to reduce it. It carries no dollar figure itself; it feeds the deterministic multiplier the engine applies at each reachable financial node."
+    },
+    "e2": {
+     "title": "Session replayed past MFA to the jump host",
+     "how": "The stolen web session cookie is replayed against internal services, landing the attacker on a DMZ jump host. Because the token represents an established, authenticated session, the identity provider never issues an MFA challenge.",
+     "leverage": "This is the step that converts an edge-device flaw into interior access. The jump host is the shared choke point from which both later branches originate — which is exactly why segmenting it (a remediation fix) closes both routes at once.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1550.004",
+       "lbl": "Use Alternate Authentication Material: Web Session Cookie"
+      },
+      {
+       "fw": "OWASP Top 10 (2021)",
+       "id": "A07:2021",
+       "lbl": "Identification and Authentication Failures"
+      }
+     ],
+     "determined": "A distinct control-bypass factor (the replayable session) scored separately from the CVE on the previous hop, so the two failures are not double-counted. Multiplier 1.00 on this hop."
+    },
+    "e3": {
+     "title": "Assume the over-privileged IAM broker role",
+     "how": "From the jump host the attacker assumes an IAM broker role that fronts payment services. The role is a standing grant carrying wire-origination rights far beyond what the automation workflow it was created for actually needs.",
+     "leverage": "No account is modified and no elevation control is defeated — the attacker simply inherits a role that is already too powerful. That is incorrect privilege assignment, and it is what makes the high-value wire branch reachable.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1078.004",
+       "lbl": "Valid Accounts: Cloud Accounts"
+      },
+      {
+       "fw": "OWASP Top 10 (2021)",
+       "id": "A01:2021",
+       "lbl": "Broken Access Control"
+      },
+      {
+       "fw": "CWE",
+       "id": "CWE-266",
+       "lbl": "Incorrect Privilege Assignment"
+      }
+     ],
+     "determined": "This hop opens Branch A. The engine reads the role’s granted rights from config, not from its intended use — the gap between the two is the over-privilege this scenario is built on."
+    },
+    "e4": {
+     "title": "Wire origination through the SWIFT connector (Branch A)",
+     "how": "With the broker role, the attacker originates wires through Lion’s SWIFT connector. No second approver is enforced on this corridor, so single-actor origination succeeds and looks like normal treasury activity.",
+     "leverage": "Branch A is the high-value, fast-detection route: Lion’s payment-anomaly rule flags the corridor at 6h, so exposure is bounded by how much of the 24h capacity can move in that window.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1657",
+       "lbl": "Financial Theft"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API5:2023",
+       "lbl": "Broken Function Level Authorization"
+      }
+     ],
+     "determined": "Branch A exposure = exposed_capacity_24h $6,680,000 × detection_window_factor 0.25 (delay 6h) × control_multiplier 1.00 = $1,670,000. Enforcing dual-approval removes this edge and this $1.67M — but nothing else."
+    },
+    "e5": {
+     "title": "Reuse an automation-account token (Branch B opens)",
+     "how": "The same jump host holds a reusable token for a card-automation service account. The attacker reuses it to reach the card-issuing service — a second route that shares the entry and the jump host but nothing downstream.",
+     "leverage": "Because Branch B is independent of Branch A, fixing one does not touch the other. This independence is the whole point of the scenario: single branch-level controls leave residual exposure on the other route.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1550.001",
+       "lbl": "Use Alternate Authentication Material: Application Access Token"
+      },
+      {
+       "fw": "OWASP Top 10 (2021)",
+       "id": "A01:2021",
+       "lbl": "Broken Access Control"
+      }
+     ],
+     "determined": "A lateral step that opens Branch B; it sets no ceiling itself. Multiplier 1.00 on this hop — the reduction on this branch comes at the issuance edge below."
+    },
+    "e6": {
+     "title": "Uncontrolled bulk virtual-card issuance (Branch B)",
+     "how": "The automation account drives bulk virtual-card issuance through the card API. A velocity check trims part of the volume, but there is no hard limit on the automated business flow, so issuance continues at scale.",
+     "leverage": "Branch B is the slow-detection, larger-accrual route: the issuance monitor only flags at 18h. More of the 24h capacity is exposed, so despite the partial velocity control this branch carries the larger loss.",
+     "refs": [
+      {
+       "fw": "MITRE ATT&CK",
+       "id": "T1657",
+       "lbl": "Financial Theft"
+      },
+      {
+       "fw": "OWASP API Top 10 (2023)",
+       "id": "API6:2023",
+       "lbl": "Unrestricted Access to Sensitive Business Flows"
+      }
+     ],
+     "determined": "Branch B exposure = exposed_capacity_24h $5,000,000 × detection_window_factor 0.75 (delay 18h) × control_multiplier 0.80 (the velocity check) = $3,000,000. Revoking the card-issuing scope removes this edge and this $3.0M — but leaves the wire branch."
+    }
+   },
+   "phases": [
+    {
+     "phase": "Initial access",
+     "tactic": "T1190 · T1539",
+     "start": 0,
+     "end": 0.5,
+     "edge": "e1",
+     "detail": "CVE-2023-4966 (Citrix Bleed) is exploited against Lion Bank’s internet-facing NetScaler. An out-of-bounds read leaks a valid session token from a legitimate user — no credentials, no exploit payload on the host."
+    },
+    {
+     "phase": "Session replay",
+     "tactic": "T1550.004",
+     "start": 0.5,
+     "end": 1,
+     "edge": "e2",
+     "detail": "The leaked web session cookie is replayed to reach an internal jump host. Because the session is already authenticated, the MFA step is simply never presented."
+    },
+    {
+     "phase": "Privilege abuse",
+     "tactic": "T1078.004",
+     "start": 1,
+     "end": 2,
+     "edge": "e3",
+     "detail": "From the jump host the attacker assumes an over-privileged IAM broker role fronting payment services — a standing role carrying wire-origination rights it should never have held."
+    },
+    {
+     "phase": "Impact — wire (Branch A)",
+     "tactic": "T1657",
+     "start": 2,
+     "end": 6,
+     "edge": "e4",
+     "branch_exposure": 1670000,
+     "detail": "Wire origination through the SWIFT connector, no second approver on this corridor. Lion’s payment-anomaly rule flags the corridor at 6h — a fast branch, but a high-value one ($1.67M realised before detection)."
+    },
+    {
+     "phase": "Impact — card (Branch B)",
+     "tactic": "T1657 · API6",
+     "start": 2,
+     "end": 18,
+     "edge": "e6",
+     "branch_exposure": 3000000,
+     "detail": "In parallel, the automation account drives bulk virtual-card issuance. A velocity check trims part of the volume but does not stop it; the issuance monitor only flags at 18h — slower detection, larger accrual ($3.0M)."
+    },
+    {
+     "phase": "Detection (both branches)",
+     "tactic": "Control deficiency",
+     "start": 6,
+     "end": 18,
+     "edge": null,
+     "detail": "Assumption: the 6h wire alert is first handled as an isolated payment-fraud event, not yet correlated with the stolen NetScaler session, so only the wire activity is stopped. At 18h the card anomaly is detected and the investigation connects both branches to the same compromised session, triggering full containment. Different detectors saw symptoms without recognising the shared root compromise — exactly the gap attack-path intelligence closes. (The monitoring gap on the automation path is an absent detector: a control deficiency, not an attacker action, so no ATT&CK technique.)"
+    }
+   ],
+   "reasoning": [
+    {
+     "title": "Identify the entry point",
+     "verdict": "accepted",
+     "thought": "edge-netscaler is the only external node with an allowed outbound edge (e1). partner-api is external but its edge (e9) is denied.",
+     "check": "Validator: e1 exists, allowed = true."
+    },
+    {
+     "title": "Name the first technique",
+     "verdict": "accepted",
+     "thought": "Leaking a live session token from an unpatched NetScaler is CVE-2023-4966 (Citrix Bleed): T1190 to reach the appliance, T1539 to steal the web session cookie. Replaying it is T1550.004 — the MFA step never fires.",
+     "check": "Validator: technique matches edge.permission semantics and the named CVE."
+    },
+    {
+     "title": "Find the fork",
+     "verdict": "accepted",
+     "thought": "From jump-host, two independent allowed routes exist: e3→e4 to swift-connector (wire) and e5→e6 to card-issuing-api (card). e7/e8 to core-ledger are denied by segmentation, so the ledger is out of reach.",
+     "check": "BFS cross-check: {swift-connector, card-issuing-api} ⊆ reachable; core-ledger ∉."
+    },
+    {
+     "title": "Read the detection delays",
+     "verdict": "deferred",
+     "thought": "Detection delay: not inferred. These are operational figures I must not invent.",
+     "check": "Supplied by bank configuration: detection_delay_hours 6 (wire) and 18 (card), read from bank.json. The model never estimates them."
+    },
+    {
+     "title": "Quantify exposure",
+     "verdict": "deferred",
+     "thought": "Financial exposure: not estimated by AI. A dollar figure from me would be a guess, and this product forbids that.",
+     "check": "Computed by the deterministic engine: $4,670,000 = $1,670,000 (wire) + $3,000,000 (card), each exposed_capacity_24h × detection_window_factor × control_multiplier."
+    },
+    {
+     "title": "Consider lateral extension",
+     "verdict": "rejected",
+     "thought": "From card-issuing-api, e11 gives db_write on card-ledger-db, which could allow tampering to hide the issuance.",
+     "check": "Out of scope: card-ledger-db carries no exposed_capacity_24h, so it contributes 0 exposure. Recorded as reached, not as loss."
+    }
+   ],
+   "ai_estimate": {
+    "low": 4000000,
+    "high": 6000000
+   },
+   "narrative_template": "One compromised edge session creates two independent routes to financial loss. From an unpatched NetScaler (CVE-2023-4966), the attacker replays a stolen session past MFA to a shared jump host, then forks: wire origination through the SWIFT connector and bulk virtual-card issuance through an automation account. Against detection delays of 6h and 18h on the two branches, up to {exposure} moves before containment, with {disruption} hours of multi-system recovery at risk. Branch-level controls reduce only part of the exposure; broader controls close the shared attack path at greater operational cost. Lion Bank turns that trade-off into an auditable remediation decision.",
+   "hops_word": "six",
+   "mttd_phrase": "detection delays of 6h (wire) and 18h (card) that this attack outruns"
+  }
+ }
+}
