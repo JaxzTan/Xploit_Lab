@@ -45,6 +45,8 @@ def _bundle(sid: str) -> loader.ScenarioBundle:
     return b
 
 
+# Cloud Run reserves paths ending in "z", so /healthz never reaches the app there; /health does.
+@app.get("/health")
 @app.get("/healthz")
 def healthz() -> dict:
     return {"status": "ok"}

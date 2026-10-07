@@ -10,7 +10,7 @@ RUN pnpm build
 
 # Stage 2: FastAPI serves the API and the built SPA
 FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:0.11.25 /uv /usr/local/bin/uv
+RUN pip install --no-cache-dir uv==0.11.25
 WORKDIR /app/backend
 COPY backend/pyproject.toml backend/uv.lock* ./
 RUN uv sync --no-dev --no-install-project

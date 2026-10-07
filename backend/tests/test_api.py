@@ -14,6 +14,7 @@ SIDS = ["meridian", "hydra", "lion"]
 
 def test_healthz():
     assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/health").json() == {"status": "ok"}
 
 
 def test_list_scenarios_order():

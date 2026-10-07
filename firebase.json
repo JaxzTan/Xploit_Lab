@@ -4,7 +4,7 @@
     "ignore": ["firebase.json", "**/.*"],
     "rewrites": [
       { "source": "/api/**", "run": { "serviceId": "fapi", "region": "us-central1" } },
-      { "source": "/healthz", "run": { "serviceId": "fapi", "region": "us-central1" } },
+      { "source": "/health", "run": { "serviceId": "fapi", "region": "us-central1" } },
       { "source": "**", "destination": "/index.html" }
     ],
     "headers": [
