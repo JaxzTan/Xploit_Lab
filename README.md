@@ -6,7 +6,7 @@
 ![TypeScript](https://img.shields.io/badge/typescript-React%2019-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-🏆 Built at **[TODO: event name]** ([TODO: date]) · **Live demo:** [TODO: url] · **Demo video:** [TODO: url or remove]
+🏆 Built at **[AI Builder Cup]** ([10 Oct 2026]) · **Live demo:** [https://xploitlab.web.app] · **Demo video:** [haven't finish]
 
 > All bank data is synthetic. The regulatory flag is a simplified rule, not legal advice.
 
