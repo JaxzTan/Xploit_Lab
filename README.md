@@ -129,11 +129,4 @@ curl localhost:8000/healthz              # {"status":"ok"}
 
 MIT. See [LICENSE](LICENSE).
 
-## Author
 
-**Jaxz Tan Cheng Soo**
-- GitHub: [@JaxzTan](https://github.com/JaxzTan)
-- LinkedIn: [jaxz-tan-cheng-soo](https://www.linkedin.com/in/jaxz-tan-cheng-soo)
-
-**Johnny Tan**
-- LinkedIn: [johnny-tan](https://www.linkedin.com/in/johnny-tcy-5aa38b1b7?utm_source=share_via&utm_content=profile&utm_medium=member_android)
