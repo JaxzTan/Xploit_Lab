@@ -1,15 +1,150 @@
 {
-  "hosting": {
-    "public": "backend/static",
-    "ignore": ["firebase.json", "**/.*"],
-    "rewrites": [
-      { "source": "/api/**", "run": { "serviceId": "fapi", "region": "us-central1" } },
-      { "source": "/v1/**", "run": { "serviceId": "fapi", "region": "us-central1" } },
-      { "source": "/health", "run": { "serviceId": "fapi", "region": "us-central1" } },
-      { "source": "**", "destination": "/index.html" }
-    ],
-    "headers": [
-      { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "prod",
+      "public": "backend/static",
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "fapi",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/v1/**",
+          "run": {
+            "serviceId": "fapi",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/health",
+          "run": {
+            "serviceId": "fapi",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/!(*.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "dev",
+      "public": "backend/static",
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "fapi-dev",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/v1/**",
+          "run": {
+            "serviceId": "fapi-dev",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/health",
+          "run": {
+            "serviceId": "fapi-dev",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/!(*.*)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

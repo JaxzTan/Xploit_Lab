@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ApiError, streamAnalyze } from './api/v1'
+import { ApiError, fetchSample, streamAnalyze } from './api/v1'
 import type { AnalysisResult, Issue, RunEvent } from './api/types'
 import { Shell } from './components/Shell'
 import { inspect } from './lib/inspect'
@@ -72,6 +72,16 @@ export default function App() {
   }, [])
 
   useEffect(() => () => abort.current?.abort(), [])
+
+  // First visit in this tab: prefill the composer with the sample (TR-1). A cleared box stays empty.
+  useEffect(() => {
+    if (session.get(JSON_KEY) !== null) return
+    fetchSample()
+      .then((s) => setJsonState((cur) => cur || JSON.stringify(s, null, 2)))
+      .catch(() => {
+        /* the Load sample button still works and reports its own error */
+      })
+  }, [])
 
   useEffect(() => {
     if (run?.status === 'done') session.set(RUN_KEY, JSON.stringify(run))

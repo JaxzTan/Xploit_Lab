@@ -32,7 +32,9 @@ function streamStage(events: RunEvent[]): number {
 
 export function Processing({ run, onBack, onRetry, onOpen }: Props) {
   const { events, result } = run
-  const target = streamStage(events)
+  // Step 01 is computed in the browser, so it never waits for the server.
+  const target = Math.max(run.status === 'error' ? 0 : 1, streamStage(events))
+  const waiting = run.status === 'streaming' && streamStage(events) < 2
   const [shown, setShown] = useState(0)
 
   useEffect(() => {
@@ -119,6 +121,16 @@ export function Processing({ run, onBack, onRetry, onOpen }: Props) {
               ))}
             </div>
           </Step>
+        )}
+
+        {shown >= 1 && waiting && (
+          <div style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr)', gap: 'var(--space-4)', paddingBottom: 'var(--space-8)' }} role="status">
+            <span />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 12, color: 'var(--color-neutral-400)' }}>
+              <span className="fi-pulse" style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--color-accent)' }} />
+              <span>Waiting for the server: lint, engine and the model call run there. The first run after a while can take ~15 s.</span>
+            </div>
+          </div>
         )}
 
         {shown >= 2 && inputs && (

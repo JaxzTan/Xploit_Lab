@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "xploitlab"
-  }
+  },
+  "targets": {
+    "xploitlab": {
+      "hosting": {
+        "prod": [
+          "xploitlab"
+        ],
+        "dev": [
+          "xploitlab-dev"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
