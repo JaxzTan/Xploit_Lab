@@ -1,0 +1,39 @@
+{
+  "input": "northbank-demo.json",
+  "model": "golden · gemini run frozen for the demo graph",
+  "analysis": {
+    "paths": [
+      {
+        "steps": [
+          { "from": "vendor-portal", "to": "vendor-svc-account", "evidence_edge": "e1", "technique": "Valid Accounts: Cloud Accounts", "mitre_id": "T1078.004", "rationale": "A long-lived vendor API key with no MFA and no IP allow-list is replayed from the compromised vendor host." },
+          { "from": "vendor-svc-account", "to": "payments-core", "evidence_edge": "e2", "technique": "Financial Theft", "mitre_id": "T1657", "rationale": "The machine identity still carries a payment_write scope left over from a migration, so no escalation is needed." }
+        ]
+      },
+      {
+        "steps": [
+          { "from": "vendor-portal", "to": "vendor-svc-account", "evidence_edge": "e1", "technique": "Valid Accounts: Cloud Accounts", "mitre_id": "T1078.004", "rationale": "Same entry hop: the static vendor API key." },
+          { "from": "vendor-svc-account", "to": "refunds-api", "evidence_edge": "e3", "technique": "Financial Theft", "mitre_id": "T1657", "rationale": "Refund issuance is a legitimate business function the vendor uses daily, so abuse at scale blends in." }
+        ]
+      }
+    ],
+    "systems_reached": ["vendor-svc-account", "payments-core", "refunds-api", "core-ledger-db", "settlement-batch", "fraud-engine", "audit-log"],
+    "phases": [
+      { "phase": "Initial access", "tactic_id": "TA0001", "edge_id": "e1", "start_h": 0, "end_h": 0.5, "detail": "Static API key replayed from the compromised vendor host. No MFA challenge, no IP allow-list, so the first request succeeds and looks identical to normal traffic." },
+      { "phase": "Discovery", "tactic_id": "TA0007", "edge_id": null, "start_h": 0.5, "end_h": 3, "detail": "Enumerate scopes on vendor-svc-account via the IdP token introspection endpoint. payment_write appears alongside the expected refund_write." },
+      { "phase": "Privilege abuse", "tactic_id": "TA0004", "edge_id": "e2", "start_h": 3, "end_h": 4, "detail": "Reuse the over-scoped token against payments-core. No escalation needed: the permission is already granted." },
+      { "phase": "Impact — payments", "tactic_id": "TA0040", "edge_id": "e2", "start_h": 4, "end_h": 24, "detail": "Structured transfers under per-transaction review thresholds until anomaly detection pages the SOC." },
+      { "phase": "Impact — refunds", "tactic_id": "TA0040", "edge_id": "e3", "start_h": 4, "end_h": 24, "detail": "Refunds issued to attacker-controlled cards through a legitimate business function until the refund anomaly alert fires." }
+    ],
+    "reasoning": [
+      { "kind": "entry", "title": "Identify the entry point", "thought": "vendor-portal is the only node marked external with an allowed outbound edge (e1). partner-sftp is external but its only edge (e8) is denied, a red herring.", "refs": { "nodes": ["vendor-portal"], "edges": ["e1"] }, "estimate": null },
+      { "kind": "technique", "title": "Name the first technique", "thought": "A static api_key_auth on a machine identity with no second factor is T1078.004 (Valid Accounts: Cloud). Bypass probability 1.0 in config agrees: the control is effectively absent.", "refs": { "nodes": ["vendor-svc-account"], "edges": ["e1"] }, "estimate": null },
+      { "kind": "branch", "title": "Choose the branch", "thought": "From vendor-svc-account, e2 and e3 are allowed; e4 (treasury-ledger) is denied so I did not follow it. Both e2 and e3 lead to financial nodes, so the path forks.", "refs": { "nodes": ["payments-core", "refunds-api"], "edges": ["e2", "e3"] }, "estimate": null },
+      { "kind": "detection_estimate", "title": "Estimate the detection window", "thought": "I estimated about 24h undetected on payments-core based on typical anomaly-rule tuning for payment APIs.", "refs": { "nodes": ["payments-core"], "edges": [] }, "estimate": 24 },
+      { "kind": "loss_estimate", "title": "Estimate losses", "thought": "Assuming the attacker structures transfers below review thresholds, I estimate $2.4M to $3.1M movable across both systems before containment.", "refs": { "nodes": ["payments-core", "refunds-api"], "edges": ["e2", "e3"] }, "estimate": 2750000 },
+      { "kind": "lateral", "title": "Consider lateral extension", "thought": "From payments-core, e5 gives db_write on core-ledger-db, which could allow ledger tampering to hide the transfers.", "refs": { "nodes": ["core-ledger-db"], "edges": ["e5"] }, "estimate": null }
+    ],
+    "mttd_estimate_h": [{ "node_id": "payments-core", "hours": 24 }],
+    "loss_estimate_usd": { "low": 2400000, "high": 3100000 },
+    "narrative": "A compromised vendor integration reaches the payment estate in {hops} without breaking a single control. The vendor service account still carries a payment_write scope it no longer needs; against a mean time to detect of {mttd} on payments-core, an attacker can move up to {exposure} before anyone is paged, and hold {disruption} of critical payment processing at risk. The refund path is legitimate and stays. Revoking the one permission nobody uses removes {avoided} of that exposure."
+  }
+}

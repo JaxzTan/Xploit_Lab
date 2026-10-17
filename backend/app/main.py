@@ -20,6 +20,8 @@ from app.models import (
     WhatIfResponse,
 )
 from app.reasoner import fill_narrative, reason
+from app.v1 import ai as v1_ai
+from app.v1.routes import router as v1_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("fapi")
@@ -30,12 +32,14 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     bundles = loader.load_all()  # fail fast on invalid scenario data
+    v1_ai.golden_index()  # fail fast on a bad v1 golden file
     log.info("loaded scenarios %s; reasoner mode=%s model=%s", list(bundles),
              config.server_source(), config.gemini_model())
     yield
 
 
 app = FastAPI(title="FAPI — Financial Attack Path Intelligence", lifespan=lifespan)
+app.include_router(v1_router)
 
 
 def _bundle(sid: str) -> loader.ScenarioBundle:
@@ -122,7 +126,7 @@ def what_if_endpoint(req: WhatIfRequest) -> WhatIfResponse:
 
 @app.get("/{full_path:path}", include_in_schema=False)
 def spa(full_path: str):
-    if full_path.startswith("api/") or full_path == "api":
+    if full_path.split("/")[0] in ("api", "v1"):
         raise HTTPException(status_code=404, detail="not found")
     index = STATIC_DIR / "index.html"
     if not index.is_file():

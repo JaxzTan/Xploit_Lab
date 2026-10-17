@@ -2,7 +2,6 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import './nocturne.css';
-@import '@xyflow/react/dist/base.css';
 
 /* Tailwind tokens mapped onto the Nocturne CSS variables. */
 @theme inline {
@@ -33,6 +32,11 @@
   --color-surface-2: #1c1e2e;
   --color-danger: #e0707e;
   --color-danger-soft: rgba(224, 112, 126, 0.14);
+  /* Live-check status colours from the intake handoff (ok = accent). */
+  --color-warn: #d9b36a;
+  --color-err: #d97a84;
+  /* The design uses --space-5; Nocturne skips it. 0.7 × 20px, between space-4 and space-6. */
+  --space-5: 14px;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   color-scheme: dark;
 }
@@ -120,17 +124,11 @@ button { font: inherit; }
   border-color: var(--color-accent); background: rgba(145, 132, 217, 0.14); color: var(--color-accent-300);
 }
 
-/* — attack graph (React Flow) — */
+/* — attack graph (SVG + absolutely placed node buttons) — */
 .fapi-graph {
   border: 1px solid var(--color-divider); border-radius: var(--radius-lg);
-  background: linear-gradient(160deg, #1a1c2c, #161826 60%); overflow: hidden;
+  background: linear-gradient(160deg, #1a1c2c, #161826 60%);
 }
-.fapi-graph .react-flow { background: transparent; }
-.fapi-graph .react-flow__pane { cursor: grab; }
-.fapi-graph .react-flow__pane.dragging { cursor: grabbing; }
-.fapi-graph .react-flow__node { cursor: default; }
-.fapi-graph .react-flow__handle { opacity: 0; pointer-events: none; width: 1px; height: 1px; min-width: 0; min-height: 0; border: 0; }
-.fapi-graph .react-flow__edge-path { stroke-width: inherit; }
 .fapi-flow { animation: fapi-dash 900ms linear infinite; }
 
 .fapi-node {
@@ -143,10 +141,60 @@ button { font: inherit; }
   color: #e9e9ed; border-color: #9184d9; background: #221f33;
   box-shadow: 0 0 0 1px rgba(145, 132, 217, 0.25), 0 0 22px rgba(145, 132, 217, 0.18);
 }
-.fapi-node[data-cutoff='true'] { opacity: 0.55; box-shadow: none; border-style: dashed; }
+.fapi-node[aria-pressed='true'] { border-color: var(--color-accent-300); }
+.fapi-node:hover { border-color: var(--color-neutral-500); }
+.fapi-node[data-onpath='true']:hover { border-color: var(--color-accent-300); }
+
+.fapi-complete {
+  font-size: 11px; padding: 3px 9px; border-radius: 4px;
+  border: 1px solid rgba(233, 233, 237, 0.16); color: #9397ab;
+}
+.fapi-complete[data-complete='false'] { border-color: #5d5294; color: #d2cefd; }
+
+.fapi-verdict {
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+  border: 1px solid #3f424d; color: #9397ab;
+}
+.fapi-verdict[data-verdict='corrected'] { border-color: #5d5294; color: #d2cefd; }
+.fapi-verdict[data-verdict='rejected'] { border-color: #595d6c; color: #cfd3e5; text-decoration: line-through; }
+
+/* — intake: composer + processing (design_handoff_fapi_intake) — */
+@keyframes fi-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes fi-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.fi-in { animation: fi-in 200ms ease-out; box-sizing: border-box; }
+.fi-in-step { animation: fi-in 220ms ease-out; }
+.fi-pulse { animation: fi-pulse 900ms ease-in-out infinite; }
+
+.fi-composer {
+  display: flex; flex-direction: column; border: 1px solid var(--color-neutral-700);
+  border-radius: var(--radius-lg); background: var(--color-neutral-900); overflow: hidden;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.fi-composer:focus-within {
+  border-color: var(--color-accent-500);
+  box-shadow: 0 0 0 1px var(--color-accent-700), 0 0 32px -8px var(--color-accent-600);
+}
+.fi-textarea {
+  width: 100%; min-height: 300px; max-height: 52vh; box-sizing: border-box; padding: 0;
+  background: transparent; border: none; resize: none; field-sizing: content;
+  color: var(--color-text); font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+}
+.fi-textarea:focus, .fi-textarea:focus-visible { outline: none; }
+.fi-textarea::placeholder { color: var(--color-neutral-600); }
+
+.fi-raw { border: 1px solid var(--color-divider); border-radius: var(--radius-md); }
+.fi-raw > summary {
+  cursor: pointer; padding: var(--space-2) var(--space-3); font-size: 12px; color: var(--color-neutral-300);
+  list-style-position: inside;
+}
+.fi-raw > summary span { color: var(--color-neutral-500); }
+.fi-raw > pre {
+  margin: 0; padding: var(--space-3); max-height: 360px; overflow: auto; border-top: 1px solid var(--color-divider);
+  font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--color-neutral-400);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .fapi-in, .fapi-flow { animation: none !important; }
+  .fapi-in, .fapi-flow, .fi-in, .fi-in-step, .fi-pulse { animation: none !important; }
   .fapi-bar-fill { transition: none; }
 }
 

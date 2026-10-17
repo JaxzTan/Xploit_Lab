@@ -1,0 +1,44 @@
+{
+  "scenario": "northbank-demo",
+  "entry": "vendor-portal",
+  "nodes": [
+    { "id": "vendor-portal", "type": "external", "criticality": "medium" },
+    { "id": "partner-sftp", "type": "external", "criticality": "medium" },
+    { "id": "vendor-svc-account", "type": "identity", "criticality": "high" },
+    { "id": "sso-idp", "type": "identity", "criticality": "critical" },
+    { "id": "ci-runner", "type": "build", "criticality": "medium" },
+    { "id": "payments-core", "type": "financial", "criticality": "critical", "critical_function": true, "transaction_limit_usd": 2500000, "mttd_hours": 18, "mttd_evidence": "SOC runbook PAY-04, 90-day median" },
+    { "id": "refunds-api", "type": "financial", "criticality": "high", "transaction_limit_usd": 2000000, "mttd_hours": 12, "mttd_evidence": "Refund anomaly alert, 90-day median" },
+    { "id": "treasury-ledger", "type": "financial", "criticality": "critical", "critical_function": true, "transaction_limit_usd": 5000000, "mttd_hours": 6 },
+    { "id": "swift-gateway", "type": "financial", "criticality": "critical", "critical_function": true, "transaction_limit_usd": 10000000, "mttd_hours": 4 },
+    { "id": "core-ledger-db", "type": "data", "criticality": "critical" },
+    { "id": "settlement-batch", "type": "process", "criticality": "high" },
+    { "id": "fraud-engine", "type": "service", "criticality": "medium" },
+    { "id": "audit-log", "type": "service", "criticality": "medium" }
+  ],
+  "edges": [
+    { "edge_id": "e1", "source": "vendor-portal", "destination": "vendor-svc-account", "permission": "api_key_auth", "allowed": true, "control_bypass_probability": 1.0, "evidence": "Machine identity authenticates with a static API key; no MFA, no IP allow-list." },
+    { "edge_id": "e2", "source": "vendor-svc-account", "destination": "payments-core", "permission": "payment_write", "allowed": true, "control_bypass_probability": 0.8, "evidence": "Scope granted Nov 2025 for a one-off migration and never revoked. Change ticket CHG-4471 closed without rollback." },
+    { "edge_id": "e3", "source": "vendor-svc-account", "destination": "refunds-api", "permission": "refund_write", "allowed": true, "control_bypass_probability": 0.8, "evidence": "Contractual: the vendor issues refunds on behalf of support. Legitimate and in use daily." },
+    { "edge_id": "e4", "source": "vendor-svc-account", "destination": "treasury-ledger", "permission": "ledger_read", "allowed": false },
+    { "edge_id": "e5", "source": "payments-core", "destination": "core-ledger-db", "permission": "db_write", "allowed": true, "control_bypass_probability": 0.6 },
+    { "edge_id": "e6", "source": "refunds-api", "destination": "fraud-engine", "permission": "rules_read", "allowed": true, "control_bypass_probability": 0.5 },
+    { "edge_id": "e7", "source": "sso-idp", "destination": "vendor-svc-account", "permission": "federate", "allowed": true, "control_bypass_probability": 0.3 },
+    { "edge_id": "e8", "source": "partner-sftp", "destination": "swift-gateway", "permission": "file_drop", "allowed": false },
+    { "edge_id": "e9", "source": "ci-runner", "destination": "payments-core", "permission": "deploy", "allowed": false },
+    { "edge_id": "e10", "source": "payments-core", "destination": "settlement-batch", "permission": "batch_submit", "allowed": true, "control_bypass_probability": 0.4 },
+    { "edge_id": "e11", "source": "refunds-api", "destination": "audit-log", "permission": "append_only", "allowed": true, "control_bypass_probability": 1.0 },
+    { "edge_id": "e12", "source": "swift-gateway", "destination": "treasury-ledger", "permission": "wire_init", "allowed": true, "control_bypass_probability": 0.2 },
+    { "edge_id": "e13", "source": "treasury-ledger", "destination": "core-ledger-db", "permission": "post_entry", "allowed": true, "control_bypass_probability": 0.7 }
+  ],
+  "rules": {
+    "disruption_hours_by_criticality": { "critical": 72, "high": 24, "medium": 8 },
+    "regulatory_threshold_usd": 100000
+  },
+  "what_ifs": [
+    { "id": "revoke-payment-write", "label": "Revoke payment_write", "op": "remove_edge", "target": "e2", "effort_hours": 1, "note": "Over-privilege from a 2025 migration. Nothing in production calls it." },
+    { "id": "revoke-refund-write", "label": "Revoke refund_write", "op": "remove_edge", "target": "e3", "effort_hours": 6, "note": "Contractually required: removing it means renegotiating support flows." },
+    { "id": "rotate-vendor-key", "label": "Rotate key + MFA on machine identity", "op": "remove_edge", "target": "e1", "effort_hours": 3, "note": "Cuts the entry hop and both branches with it." },
+    { "id": "clear-evidence", "label": "Evidence gap: refunds-api MTTD unknown", "op": "clear_evidence", "target": "refunds-api", "field": "mttd_hours", "effort_hours": 0, "note": "What the verdict looks like when a factor has no evidence behind it." }
+  ]
+}
